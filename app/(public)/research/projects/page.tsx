@@ -3,7 +3,7 @@ import React from 'react'
 const page = () => {
   return (
     <div>
-      Hey I am About Page
+      I am research projects page
     </div>
   )
 }
