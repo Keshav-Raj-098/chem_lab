@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import RichTextEditor from "@/components/admin/textEditor";
-import DOMPurify from "isomorphic-dompurify";
 
 interface Award {
   id: string;
@@ -108,7 +107,7 @@ export default function AdminAwardsTable({ refreshTrigger, setRefreshTrigger }: 
       cell: (award) => (
         <div 
           className="max-w-150 line-clamp-2 text-sm text-gray-600 prose prose-sm prose-slate"
-          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(award.body) }} 
+          dangerouslySetInnerHTML={{ __html: award.body }} 
         />
       ),
     },

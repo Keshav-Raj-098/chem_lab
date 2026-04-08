@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import DOMPurify from "isomorphic-dompurify";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -29,12 +28,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "Award body and type are required" }, { status: 400 });
     }
 
-    const sanitizedBody = DOMPurify.sanitize(body.awardBody);
 
     const updatedAward = await prisma.awards.update({
       where: { id },
       data: {
-        body: sanitizedBody,
+        body: body.awardBody,
         type: body.awardType,
       },
     });
