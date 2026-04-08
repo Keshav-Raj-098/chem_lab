@@ -1,0 +1,137 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+
+enum ResearchStatus {
+  ONGOING
+  COMPLETED
+  PLANNED
+}
+
+model ResearchProjects {
+  id   String @id @default(uuid())
+  title String
+  description String
+  body String
+  mainImg String
+  imgs String[]
+  links String[]
+  fundingAgencies String[]
+  investigators String[]
+  contributors String[]
+  duration String?
+  status ResearchStatus @default(PLANNED)
+  amntFunded Decimal? @db.Decimal(10,2)    // in Lakhs INR
+  completedOn DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([completedOn])
+}
+
+
+
+model Equipments {
+  id String @id @default(uuid())
+  name String
+  manufacturer String
+  model String
+  serialNumber String
+  installedOn DateTime
+  category String   // 
+  createdAt DateTime @default(now())  // for this entry not the equipment but the record of it
+  updatedAt DateTime @updatedAt
+}
+
+
+
+enum GroupCategory {
+  POSTDOC
+  PHD
+  MASTERS
+  UNDERGRADUATE
+  FACULTY
+  ALUMNI
+  STAFF
+  RESEARCH_SCHOLAR
+  COLLABORATOR
+  OTHER
+}
+
+model GroupMembers {
+  id String @id @default(uuid())
+  name String
+  email String @unique
+  researchAreas String[]
+  designation String?
+  category GroupCategory  
+  profileImgUrl String?
+  profileLink String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+
+enum AwardType {
+  GROUP_LEADER
+  GROUP_MEMBER
+}
+
+model Awards {
+  id String @id @default(uuid())
+  body String
+  type AwardType
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+enum PublicationCategory {
+  PATENTS
+  JOURNAL
+  CONFERENCE
+  PRESENTATION
+  NATIONAL_REPORT
+  INVITED_TALK
+  BOOK
+  OTHER
+}
+
+
+model Publications {
+  id String @id @default(uuid())
+  body String
+  category PublicationCategory
+  year Int? // ! No db constraint on year, but must be validated in for publication | only required for publications that's why it's optional
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([year])
+}
+
+
+
+model NewsAndAnnouncements {
+  id String @id @default(uuid())
+  title String
+  body String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
