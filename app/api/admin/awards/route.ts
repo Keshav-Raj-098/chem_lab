@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ca } from "zod/v4/locales";
 import { stat } from "fs";
-import DOMPurify from "isomorphic-dompurify";
+
 
 export async function POST(req: NextRequest) {
     try {
@@ -14,11 +14,11 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Invalid request body: body and type are required" }, { status: 400 });
         }
 
-        const sanitizedBody = DOMPurify.sanitize(req_body.awardBody);
+       
 
         const createAward = await prisma.awards.create({
             data: {
-                body: sanitizedBody,
+                body: req_body.awardBody,
                 type: req_body.awardType,
             }
         });
