@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react'
-import AdminPublicationTable from '@/components/admin/publication/AdminPublicationTable'
-import CreatePublication from '@/components/admin/publication/createPublication'
+import AdminEquipmentTable from '@/components/admin/equipments/AdminEquipmentTable'
+import CreateEquipment from '@/components/admin/equipments/createEquipment'
 
 const page = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -13,11 +13,11 @@ const page = () => {
   return (
     <div>
       <header className="flex items-center justify-between sticky top-0 bg-white z-10 px-6 py-4 border-b">
-        <h1 className="text-2xl font-bold text-gray-800">Manage Publications</h1>
-        <CreatePublication onSuccess={handleRefresh} />
+        <h1 className="text-2xl font-bold text-gray-800">Equipments Management</h1>
+        <CreateEquipment onSuccess={handleRefresh} />
       </header>
       <div className='p-6 bg-gray-50 min-h-[calc(100vh-73px)]'>
-        <AdminPublicationTable refreshTrigger={refreshTrigger} setRefreshTrigger={setRefreshTrigger} />
+        <AdminEquipmentTable refreshTrigger={refreshTrigger} setRefreshTrigger={setRefreshTrigger} />
       </div>
     </div>
   )

@@ -1,37 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { ca } from "zod/v4/locales";
-import { stat } from "fs";
-
+import { PublicationCategory } from "@/lib/generated/prisma/enums";
 
 export async function POST(req: NextRequest) {
     try {
         const req_body = await req.json();
 
-        console.log("Received request body:", req_body);
-
-        if (!req_body || !req_body.awardBody || !req_body.awardType) {
-            return NextResponse.json({ error: "Invalid request body: body and type are required" }, { status: 400 });
+        if (!req_body || !req_body.publicationBody || !req_body.publicationCategory) {
+            return NextResponse.json({ error: "Invalid request body: body and category are required" }, { status: 400 });
         }
 
-       
+        console.log(req_body);
+        
 
-        const createAward = await prisma.awards.create({
+        const createPublication = await prisma.publications.create({
             data: {
-                body: req_body.awardBody,
-                type: req_body.awardType,
+                body: req_body.publicationBody,
+                category: req_body.publicationCategory as PublicationCategory,
+                year: req_body.year || null,
             }
         });
-        return NextResponse.json({ message: "Award created successfully", status: 201 });
+        return NextResponse.json({ message: "Publication created successfully", status: 201 });
     }
     catch (error) {
-        console.error("Error in awards route:", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 },);
+        console.error("Error in publications route:", error);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
-
-
-
 
 export async function GET(req: NextRequest) {
     try {
@@ -39,21 +34,20 @@ export async function GET(req: NextRequest) {
         
         let page = parseInt(searchParams.get("page") || "1");
         let limit = parseInt(searchParams.get("limit") || "10");
-        const type = searchParams.get("type");
+        const category = searchParams.get("category");
 
-        // Handle NaN or invalid numbers
         if (isNaN(page) || page < 1) page = 1;
         if (isNaN(limit) || limit < 1) limit = 10;
 
         const skip = (page - 1) * limit;
 
         const where: any = {};
-        if (type) {
-            where.type = type;
+        if (category) {
+            where.category = category;
         }
 
-        const [awards, total] = await Promise.all([
-            prisma.awards.findMany({
+        const [publications, total] = await Promise.all([
+            prisma.publications.findMany({
                 where,
                 skip,
                 take: limit,
@@ -61,11 +55,11 @@ export async function GET(req: NextRequest) {
                     updatedAt: "desc",
                 },
             }),
-            prisma.awards.count({ where }),
+            prisma.publications.count({ where }),
         ]);
 
         return NextResponse.json({
-            awards,
+            publications,
             meta: {
                 total,
                 page,
@@ -75,7 +69,7 @@ export async function GET(req: NextRequest) {
         });
     }
     catch (error) {
-        console.error("Error in awards route:", error);
+        console.error("Error in publications route:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

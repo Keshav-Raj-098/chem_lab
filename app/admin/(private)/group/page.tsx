@@ -3,7 +3,7 @@ import React from 'react'
 const page = () => {
   return (
     <div>
-        I am Edit Award Page
+      i am group page
     </div>
   )
 }

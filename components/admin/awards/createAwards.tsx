@@ -19,8 +19,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import RichTextEditor from "../textEditor";
+import dynamic from "next/dynamic";
 import { Plus } from "lucide-react";
+
+const RichTextEditor = dynamic(() => import("../textEditor"), {
+  ssr: false,
+  loading: () => <div className="h-64 border rounded-md bg-muted/20 animate-pulse flex items-center justify-center text-muted-foreground text-sm">Loading editor...</div>
+});
 
 interface CreateAwardProps {
   onSuccess: () => void;

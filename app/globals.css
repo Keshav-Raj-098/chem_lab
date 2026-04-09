@@ -6,8 +6,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: var(--font-sans);
+    --font-serif: var(--font-serif);
+    --font-heading: var(--font-serif);
+    --font-sans: var(--font-inter);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -68,11 +69,12 @@
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
     --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
+    /* Professional Chem-Web Palette */
+    --chart-1: #1a4d6e; /* Deep Ocean - Trust & Authority */
+    --chart-2: #2b7a78; /* Sage Pine - Freshness & Growth */
+    --chart-3: #3aa89f; /* Teal - Innovation */
+    --chart-4: #64c2a6; /* Soft Mint - Clarity */
+    --chart-5: #a0d8c1; /* Pale Green - Success */
     --radius: 0.625rem;
     --sidebar: oklch(0.985 0 0);
     --sidebar-foreground: oklch(0.145 0 0);

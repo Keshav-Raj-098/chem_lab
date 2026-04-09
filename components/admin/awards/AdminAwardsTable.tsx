@@ -45,8 +45,12 @@ export default function AdminAwardsTable({ refreshTrigger, setRefreshTrigger }: 
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const fetchAwards = async (page: number, limit: number) => {
-    const response = await axios.get(`/admin/awards?page=${page}&limit=${limit}`);
+  const fetchAwards = async (page: number, limit: number, filters?: Record<string, any>) => {
+    let url = `/admin/awards?page=${page}&limit=${limit}`;
+    if (filters?.type) {
+      url += `&type=${filters.type}`;
+    }
+    const response = await axios.get(url);
     return {
       data: response.data.awards,
       meta: response.data.meta,
@@ -135,15 +139,26 @@ export default function AdminAwardsTable({ refreshTrigger, setRefreshTrigger }: 
     },
   ];
 
+  const types = [
+    { label: "Group Member", value: "GROUP_MEMBER" },
+    { label: "Group Leader", value: "GROUP_LEADER" },
+  ];
+
   return (
-    <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+    <>
       <GenericDataTable
-        title=""
         columns={columns}
         fetchData={fetchAwards}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
         refreshTrigger={refreshTrigger}
+        filtersConfig={[
+          {
+            key: "type",
+            label: "Type",
+            options: types,
+          },
+        ]}
       />
 
       {/* Edit Dialog */}
@@ -200,6 +215,6 @@ export default function AdminAwardsTable({ refreshTrigger, setRefreshTrigger }: 
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

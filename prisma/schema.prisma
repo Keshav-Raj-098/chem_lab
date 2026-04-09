@@ -104,6 +104,7 @@ model Awards {
 
 enum PublicationCategory {
   PATENTS
+  PUBLICATION
   JOURNAL
   CONFERENCE
   PRESENTATION

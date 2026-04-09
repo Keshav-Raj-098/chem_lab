@@ -23,14 +23,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <AppSidebar setPageTitle={setPageTitle} />
-        <main className="flex-1 overflow-auto bg-gray-50/50">
-          <div >
-            {children}
-          </div>
-        </main>
-      </div>
+      <AppSidebar setPageTitle={setPageTitle} />
+      <main className="flex-1 overflow-auto bg-gray-50/50">
+        <div >
+          {children}
+        </div>
+      </main>
     </SidebarProvider>
   );
 }

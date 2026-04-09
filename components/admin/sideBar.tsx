@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/sidebar"
 import { MdDashboard } from "react-icons/md";
 import { IoSettingsSharp } from "react-icons/io5";
-import { LogOut, type LucideIcon, Briefcase, BeakerIcon, Award, BookOpen } from "lucide-react"
+import { LogOut, type LucideIcon, Briefcase, BeakerIcon, Award, BookOpen,Newspaper,User2Icon } from "lucide-react"
 import type { IconType } from "react-icons/lib";
 import { useEffect } from "react";
 import Logo from '@/assets/image.png'
@@ -58,6 +58,12 @@ export function AppSidebar({ setPageTitle }: { setPageTitle: (title: string) => 
             pageTitle: "Manage your Projects",
         },
         {
+            name: "Group Members",
+            icon: User2Icon,
+            link: "/admin/group",
+            pageTitle: "Manage your Projects",
+        },
+        {
             name: "Awards",
             icon: Award,
             link: "/admin/awards",
@@ -67,6 +73,18 @@ export function AppSidebar({ setPageTitle }: { setPageTitle: (title: string) => 
             name: "Publications",
             icon: BookOpen,
             link: "/admin/publications",
+            pageTitle: "Manage your Publications"
+        },
+        {
+            name: "Equipments",
+            icon: IoSettingsSharp,
+            link: "/admin/equipments",
+            pageTitle: "Manage your Publications"
+        },
+        {
+            name: "News & Announcements",
+            icon: Newspaper,
+            link: "/admin/news&announcements",
             pageTitle: "Manage your Publications"
         },
     ]
