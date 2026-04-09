@@ -11,6 +11,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu"
 
 import { Phone, Mail, Triangle } from 'lucide-react'
@@ -20,6 +24,7 @@ type SubNavbarItem = {
   name: string,
   link: string,
   description?: string
+  subNavbarItems?: { name: string, link: string, description?: string }[]
 }
 
 type NavbarItem = {
@@ -35,9 +40,12 @@ interface NavButtonProps {
 }
 
 const NavButton = ({ navbarItem, setPageTitle }: NavButtonProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+
   function handleClick(title?: string) {
     return (e: React.MouseEvent<HTMLAnchorElement>) => {
       if (title) setPageTitle(title)
+      setIsOpen(false);
     }
   }
 
@@ -55,7 +63,12 @@ const NavButton = ({ navbarItem, setPageTitle }: NavButtonProps) => {
     )
   }
   return (
-    <DropdownMenu>
+    <li 
+      className="list-none"
+      onMouseEnter={() => setIsOpen(true)}
+      onMouseLeave={() => setIsOpen(false)}
+    >
+      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger>
         <div className="flex flex-row gap-1 items-center group cursor-pointer">
           <span className="transition-colors duration-150 group-hover:text-(--hover)">{navbarItem.name}</span>
@@ -69,20 +82,53 @@ const NavButton = ({ navbarItem, setPageTitle }: NavButtonProps) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent >
         <DropdownMenuGroup>
-          {navbarItem.subNavbarItems?.map((item, index) => (
-            <DropdownMenuItem key={index}>
-              <Link
-                onClick={item.description ? handleClick(item.description) : undefined}
-                href={item.link}
-                className="transition-colors duration-150 hover:text-(--hover)"
-              >
-                {item.name}
-              </Link>
-            </DropdownMenuItem>
-          ))}
+          {navbarItem.subNavbarItems?.map((item, index) => {
+            if (item.subNavbarItems) {
+              return (
+                <DropdownMenuSub key={index}>
+                  <DropdownMenuSubTrigger className="cursor-pointer transition-colors duration-150">
+                    <Link
+                      onClick={item.description ? handleClick(item.description) : undefined}
+                      href={item.link}
+                      className="transition-colors duration-150 hover:text-(--hover) w-full"
+                    >
+                      {item.name}
+                    </Link>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      {item.subNavbarItems.map((subItem, subIndex) => (
+                        <DropdownMenuItem key={subIndex}>
+                          <Link
+                            onClick={subItem.description ? handleClick(subItem.description) : undefined}
+                            href={subItem.link}
+                            className="transition-colors duration-150 hover:text-(--hover) w-full"
+                          >
+                            {subItem.name}
+                          </Link>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+              )
+            }
+            return (
+              <DropdownMenuItem key={index}>
+                <Link
+                  onClick={item.description ? handleClick(item.description) : undefined}
+                  href={item.link}
+                  className="transition-colors duration-150 hover:text-(--hover) w-full"
+                >
+                  {item.name}
+                </Link>
+              </DropdownMenuItem>
+            )
+          })}
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
+    </li>
   )
 }
 
@@ -98,7 +144,14 @@ const Navbar = () => {
       name: "Research", link: "/research", subNavbarItems: [
         { name: "Research Areas", link: "/research/areas", description: "Research Areas @ Chemical Research Lab, IIT Delhi" },
         { name: "Research Facilities", link: "/research/facilities", description: "Research Facilities @ Chemical Research Lab, IIT Delhi" },
-        { name: "Research Projects", link: "/research/projects", description: "Projects List @ Chemical Research Lab, IIT Delhi" }
+        { 
+          name: "Research Projects", link: "/research/projects", description: "Projects List @ Chemical Research Lab, IIT Delhi",
+          subNavbarItems: [
+            { name: "Projects Done", link: "/research/projects/done", description: "Completed Projects @ Chemical Research Lab, IIT Delhi" },
+            { name: "Sponsored Projects", link: "/research/projects/sponsored", description: "Sponsored Projects @ Chemical Research Lab, IIT Delhi" },
+            { name: "Future Projects", link: "/research/projects/future", description: "Future Projects @ Chemical Research Lab, IIT Delhi" }
+          ]
+        }
       ]
     },
     {
@@ -108,7 +161,13 @@ const Navbar = () => {
         { name: "Collaborators", link: "/people/collaborators", description: "Collaborators @ Chemical Research Lab, IIT Delhi" }
       ]
     },
-    { name: "Awards", link: "/awards",description: "Awards @ Chemical Research Lab, IIT Delhi" },
+    {
+      name: "Awards", link: "/awards",
+      subNavbarItems: [
+        { name: "Group Leader", link: "/awards/groupLeader", description: "Group Leader Awards @ Chemical Research Lab, IIT Delhi" },
+        { name: "Group Members", link: "/awards/group-members", description: "Group Members Awards @ Chemical Research Lab, IIT Delhi" }
+      ]
+    },
     { name: "Publications", link: "/publications", description: "Publications @ Chemical Research Lab, IIT Delhi" },
     { name: "News & Announcements", link: "/news", description: "News @ Chemical Research Lab, IIT Delhi" },
     { name: "Outreach", link: "/outreach" },
