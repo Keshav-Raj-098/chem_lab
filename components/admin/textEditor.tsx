@@ -1,7 +1,6 @@
 "use client";
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import Link from '@tiptap/extension-link'
 import Color from '@tiptap/extension-color'
 import { TextStyle } from '@tiptap/extension-text-style'
 import { useEffect, useState, useCallback } from 'react';
@@ -52,7 +51,7 @@ const ToolBtn = ({
       hover:bg-gray-200 hover:text-gray-800
       active:scale-95
       disabled:opacity-30 disabled:cursor-not-allowed
-      \${active ? 'bg-gray-200 text-gray-900' : ''}
+      ${active ? 'bg-gray-200 text-gray-900' : ''}
     `}
   >
     {children}
@@ -124,7 +123,7 @@ const MenuBar = ({
             className={`
               cursor-pointer w-4 h-4 rounded-full transition-all duration-100
               hover:scale-110
-              \${activeColor === value
+              ${activeColor === value
                 ? 'ring-2 ring-offset-1 ring-gray-500 scale-110'
                 : 'ring-1 ring-black/10'
               }
@@ -163,15 +162,18 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
-      TextStyle,
-      Color,
-      Link.configure({ 
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'text-blue-600 underline cursor-pointer',
+      // StarterKit v3 already bundles Link, BulletList, OrderedList, etc.
+      // Configure Link via StarterKit instead of registering a duplicate extension.
+      StarterKit.configure({
+        link: {
+          openOnClick: false,
+          HTMLAttributes: {
+            class: 'text-blue-600 underline cursor-pointer',
+          },
         },
       }),
+      TextStyle,
+      Color,
     ],
     content: value,
     onUpdate: ({ editor }) => { onChange(editor.getHTML()); },
@@ -183,11 +185,14 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
     },
   });
 
-  // Keep editor content in sync with external value
+  // Keep editor content in sync with external value — but only when the editor
+  // is NOT focused, otherwise we'd reset the cursor on every keystroke as the
+  // parent re-renders with the value we just emitted from onUpdate.
   useEffect(() => {
-    if (editor && value !== editor.getHTML()) {
-      editor.commands.setContent(value);
-    }
+    if (!editor) return;
+    if (editor.isFocused) return;
+    if (value === editor.getHTML()) return;
+    editor.commands.setContent(value, { emitUpdate: false });
   }, [value, editor]);
 
   const openLinkDialog = useCallback(() => {
@@ -205,30 +210,59 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
 
   const applyLink = () => {
     if (!editor) return;
-    
+
     const trimmedUrl = linkUrl.trim();
     const trimmedText = linkText.trim() || trimmedUrl;
 
-    if (trimmedUrl) {
-      editor
-        .chain()
-        .focus()
-        .extendMarkRange('link')
-        .insertContent({
-          type: 'text',
-          text: trimmedText,
-          marks: [
-            {
-              type: 'link',
-              attrs: { href: trimmedUrl },
-            },
-          ],
-        })
-        .setLink({ href: trimmedUrl })
-        .run();
-    } else {
+    // After inserting linked text, ProseMirror keeps the link mark in
+    // "stored marks" so the next typed character would extend the link.
+    // Clear it so the cursor escapes the link.
+    const clearStoredLinkMark = () => {
+      const linkMarkType = editor.schema.marks.link;
+      if (!linkMarkType) return;
+      const tr = editor.state.tr.removeStoredMark(linkMarkType);
+      editor.view.dispatch(tr);
+    };
+
+    if (!trimmedUrl) {
       editor.chain().focus().extendMarkRange('link').unsetLink().run();
+    } else {
+      const { from, to } = editor.state.selection;
+      const hasSelection = from !== to;
+      const isOnExistingLink = editor.isActive('link');
+
+      if (isOnExistingLink) {
+        // Editing an existing link — replace the whole link mark range with the new text/url.
+        editor
+          .chain()
+          .focus()
+          .extendMarkRange('link')
+          .insertContent({
+            type: 'text',
+            text: trimmedText,
+            marks: [{ type: 'link', attrs: { href: trimmedUrl } }],
+          })
+          .run();
+        clearStoredLinkMark();
+      } else if (hasSelection) {
+        // There's a text selection — apply a link mark to it.
+        editor.chain().focus().setLink({ href: trimmedUrl }).run();
+        clearStoredLinkMark();
+      } else {
+        // No selection — insert the link text as a new linked node.
+        editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: 'text',
+            text: trimmedText,
+            marks: [{ type: 'link', attrs: { href: trimmedUrl } }],
+          })
+          .run();
+        clearStoredLinkMark();
+      }
     }
+
     setLinkDialogOpen(false);
     setLinkUrl('');
     setLinkText('');
@@ -251,9 +285,9 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
           px-3 py-2 relative
           [&_.tiptap]:outline-none
           [&_.tiptap_p]:my-0
-          [&_.tiptap_ul]:my-0.5 [&_.tiptap_ul]:pl-4
+          [&_.tiptap_ul]:my-0.5 [&_.tiptap_ul]:pl-5 [&_.tiptap_ul]:list-disc [&_.tiptap_ul]:list-outside
           [&_.tiptap_ul_li]:my-0 [&_.tiptap_ul_li_p]:my-0
-          [&_.tiptap_ol]:my-0.5 [&_.tiptap_ol]:pl-4
+          [&_.tiptap_ol]:my-0.5 [&_.tiptap_ol]:pl-5 [&_.tiptap_ol]:list-decimal [&_.tiptap_ol]:list-outside
           [&_.tiptap_ol_li]:my-0 [&_.tiptap_ol_li_p]:my-0
         `}>
           <EditorContent editor={editor} />

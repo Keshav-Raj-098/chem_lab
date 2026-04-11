@@ -14,6 +14,8 @@ export async function getDashboardStats() {
     recentNews,
     projectTrend,
     publicationTrend,
+    fundingByYearRaw,
+    latestProjects,
   ] = await Promise.all([
     prisma.researchProjects.groupBy({ by: ["status"], _count: { _all: true } }),
     prisma.equipments.groupBy({ by: ["category"], _count: { _all: true } }),
@@ -44,6 +46,26 @@ export async function getDashboardStats() {
       GROUP BY year
       ORDER BY year ASC
     `,
+
+    prisma.$queryRaw<{ year: number; total: number }[]>`
+      SELECT EXTRACT(YEAR FROM "createdAt")::int AS year,
+             COALESCE(SUM("amntFunded"), 0)::float AS total
+      FROM "ResearchProjects"
+      GROUP BY year
+      ORDER BY year ASC
+    `,
+
+    prisma.researchProjects.findMany({
+      take: 4,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        amntFunded: true,
+        createdAt: true,
+      },
+    }),
   ]);
 
   const currentYear = new Date().getFullYear();
@@ -59,9 +81,20 @@ export async function getDashboardStats() {
     .filter(r => r.year >= currentYear - 5)
     .map(r => ({ year: Number(r.year), count: Number(r.count) }));
 
+  const fundingByYear = fundingByYearRaw
+    .filter(r => r.year >= currentYear - 5)
+    .map(r => ({ year: Number(r.year), total: Number(r.total) }));
+
+  const ongoing   = projectCounts.find(p => p.status === "ONGOING")?._count._all ?? 0;
+  const completed = projectCounts.find(p => p.status === "COMPLETED")?._count._all ?? 0;
+  const planned   = projectCounts.find(p => p.status === "PLANNED")?._count._all ?? 0;
+
   return {
     totals: {
       projects: projectCounts.reduce((s, p) => s + p._count._all, 0),
+      activeProjects: ongoing,
+      completedProjects: completed,
+      plannedProjects: planned,
       members: memberCounts.reduce((s, m) => s + m._count._all, 0),
       publications: publicationCounts.reduce((s, p) => s + p._count._all, 0),
       equipment: equipmentCounts.reduce((s, e) => s + e._count._all, 0),
@@ -76,6 +109,14 @@ export async function getDashboardStats() {
     publications: publicationCounts.map(p => ({ category: p.category, count: p._count._all })),
     projectTrend: MONTHS.map(m => ({ month: m, count: projectTrendMap[m] ?? 0 })),
     publicationTrend: pubTrendNorm,
+    fundingByYear,
+    latestProjects: latestProjects.map(p => ({
+      id: p.id,
+      title: p.title,
+      status: p.status,
+      amntFunded: p.amntFunded ? Number(p.amntFunded) : null,
+      createdAt: p.createdAt.toISOString(),
+    })),
     recentNews: recentNews.map(n => ({
       ...n,
       createdAt: n.createdAt.toISOString(),

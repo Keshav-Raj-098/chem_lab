@@ -2,16 +2,22 @@ import axios from "axios";
 
 const axiosInstance = axios.create({
   baseURL: "/api",
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 // Request interceptor to add the auth token
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
+    // If data is FormData, let axios set the Content-Type with the boundary
+    if (config.data instanceof FormData) {
+      if (config.headers) {
+        delete config.headers["Content-Type"];
+      }
+    } else if (config.headers && !config.headers["Content-Type"]) {
+      config.headers["Content-Type"] = "application/json";
+    }
+
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
