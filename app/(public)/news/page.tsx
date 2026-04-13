@@ -12,9 +12,24 @@ const page = async () => {
 
 
   return (
-    <div className="container px-8 py-24 bg--c-off-white" >
-      <h1 className="text-4xl font-bold mb-12">News & Announcements</h1>
-      <NewsList initialNews={news} />
+    <div className="min-h-screen bg-white">
+      {/* Header Area */}
+      <div className="pt-28 pb-8 bg-slate-50 border-b border-slate-100">
+        <div className="max-w-6xl mx-auto px-12">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-px bg-teal-600" />
+            <span className="text-xs font-medium tracking-widest uppercase text-teal-600">Updates</span>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-serif text-slate-900">News & Announcements</h1>
+          <p className="mt-2 text-sm text-slate-500 font-light">
+            Latest updates and announcements from our laboratory.
+          </p>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto p-8">
+        <NewsList initialNews={news} />
+      </div>
     </div>
   )
 }
