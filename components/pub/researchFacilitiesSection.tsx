@@ -66,7 +66,14 @@ const FacilityCard = ({ item }: { item: FacilityItem }) => {
   return (
     <div className="facility-card">
       <div className="facility-card-img">
-        <Image src={item.image} alt={item.name} width={120} height={100} style={{ maxHeight: 100, objectFit: 'contain' }} />
+        <Image 
+          src={item.image} 
+          alt={item.name} 
+          width={120} 
+          height={100} 
+          loading="lazy"
+          style={{ maxHeight: 100, objectFit: 'contain' }} 
+        />
       </div>
       <span className="facility-card-tag">{item.categoryLabel}</span>
       <h3 className="facility-card-name">{item.name}</h3>

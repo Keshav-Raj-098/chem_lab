@@ -13,7 +13,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         if (!member) {
             return NextResponse.json({ error: "Member not found" }, { status: 404 });
         }
-
         return NextResponse.json(member);
     } catch (error) {
         console.error("Error in group member ID route:", error);
@@ -26,7 +25,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         const { id } = await params;
         const contentType = req.headers.get("content-type") || "";
         
-        let name, email, category, designation, profileLink, researchAreas, image, profileImgUrl;
+        let name, email, category, designation, profileLink, researchAreas, image, profileImgUrl, phoneNumber;
 
         if (contentType.includes("multipart/form-data")) {
             const formData = await req.formData();
@@ -35,8 +34,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             category = formData.get("category") as string;
             designation = formData.get("designation") as string;
             profileLink = formData.get("profileLink") as string;
-            const researchAreasStr = formData.get("researchAreas") as string;
-            researchAreas = researchAreasStr ? JSON.parse(researchAreasStr) : [];
+            phoneNumber = formData.get("phoneNumber") as string;
+            researchAreas = formData.get("researchAreas") as string;
             image = formData.get("image") as File | null;
             profileImgUrl = formData.get("profileImgUrl") as string || "";
 
@@ -52,7 +51,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             category = body.category;
             designation = body.designation;
             profileLink = body.profileLink;
-            researchAreas = body.researchAreas || [];
+            phoneNumber = body.phoneNumber;
+            researchAreas = body.researchAreas;
             profileImgUrl = body.profileImgUrl;
         }
 
@@ -72,6 +72,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
                 category,
                 profileImgUrl,
                 profileLink,
+                phoneNumber,
             },
         });
 

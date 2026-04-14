@@ -6,22 +6,33 @@ interface GroupMember {
   id: string;
   name: string;
   email: string;
-  researchAreas: string[];
+  researchAreas: string;
   designation: string | null;
   category: string;
   profileImgUrl: string | null;
   profileLink: string | null;
 }
 
+const getFullImageUrl = (url: string | null) => {
+  if (!url) return null;
+  if (url.startsWith("http") || url.startsWith("/")) return url;
+  // If it's a relative path from Cloudinary, prepend the public URL.
+  const publicUrl = process.env.NEXT_PUBLIC_CLOUDINARY_URL;
+  return publicUrl ? `${publicUrl}/${url}` : `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/${url}`;
+};
+
 const GroupMemberCard = ({ member }: { member: GroupMember }) => {
+  const profileImgUrl = getFullImageUrl(member.profileImgUrl);
   return (
     <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col h-full">
-      <div className="relative aspect-[4/5] w-full overflow-hidden bg-gray-50">
-        {member.profileImgUrl ? (
+      <div className="relative aspect-4/5 w-full overflow-hidden bg-gray-50">
+        {profileImgUrl ? (
           <Image
-            src={member.profileImgUrl}
+            src={profileImgUrl}
             alt={member.name}
             fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            loading="lazy"
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
@@ -51,19 +62,13 @@ const GroupMemberCard = ({ member }: { member: GroupMember }) => {
           )}
         </div>
 
-        {member.researchAreas.length > 0 && (
-          <div className="mb-6 flex-1">
+        {member.researchAreas && (
+          <div className="mb-6 flex-1 text-sm text-gray-600 line-clamp-3 overflow-hidden">
             <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Research Focus</div>
-            <div className="flex flex-wrap gap-1.5">
-              {member.researchAreas.slice(0, 4).map((area, i) => (
-                <span key={i} className="px-2 py-0.5 bg-gray-50 text-gray-600 text-[11px] rounded-md border border-gray-100">
-                  {area}
-                </span>
-              ))}
-              {member.researchAreas.length > 4 && (
-                <span className="text-[10px] text-gray-400 self-center">+{member.researchAreas.length - 4} more</span>
-              )}
-            </div>
+            <div 
+              className="prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{ __html: member.researchAreas }} 
+            />
           </div>
         )}
 

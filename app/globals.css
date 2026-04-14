@@ -1336,3 +1336,64 @@
         text-align: center;
     }
 }
+
+/* ═══════════════════════════════════
+   MEMBERS PAGE
+   ═══════════════════════════════════ */
+
+@keyframes cardFadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scrollReveal {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.member-card-wrapper {
+    animation: cardFadeInUp 0.5s ease-out forwards;
+    opacity: 0;
+}
+
+.scroll-reveal {
+    animation: scrollReveal 0.6s ease-out forwards;
+}
+
+.section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--c-teal);
+    margin-bottom: 12px;
+}
+
+.section-heading {
+    font-size: clamp(1.875rem, 5vw, 3rem);
+    font-weight: 700;
+    color: var(--c-text-primary);
+    line-height: 1.2;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+    .member-card-wrapper {
+        animation-delay: 0ms !important;
+    }
+}

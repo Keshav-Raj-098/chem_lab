@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
       awardCounts,
       publicationCounts,
       newsCount,
-      totalFunding,
+      allProjects,
       recentNews,
       projectTrend,
       publicationTrend,
@@ -33,8 +33,11 @@ export async function GET(req: NextRequest) {
       prisma.publications.groupBy({ by: ["category"], _count: { _all: true } }),
       prisma.newsAndAnnouncements.count(),
 
-      // Sum of all funded amounts
-      prisma.researchProjects.aggregate({ _sum: { amntFunded: true } }),
+      // Sum of all funded amounts - amntFunded is String?
+      prisma.researchProjects.findMany({ 
+        select: { amntFunded: true },
+        where: { amntFunded: { not: null } }
+      }),
 
       // Latest 5 news items for activity feed
       prisma.newsAndAnnouncements.findMany({
@@ -76,6 +79,12 @@ export async function GET(req: NextRequest) {
       .filter(r => r.year >= currentYear - 5)
       .map(r => ({ year: r.year, count: Number(r.count) }));
 
+    // trends calculation omitted... (I'll just replace the relevant part in the return)
+    const totalFundingAmount = allProjects.reduce((sum, p) => {
+      const val = parseFloat(p.amntFunded || "0");
+      return sum + (isNaN(val) ? 0 : val);
+    }, 0);
+
     return NextResponse.json({
       // Summary cards
       totals: {
@@ -85,7 +94,7 @@ export async function GET(req: NextRequest) {
         equipment: equipmentCounts.reduce((s, e) => s + e._count._all, 0),
         awards: awardCounts.reduce((s, a) => s + a._count._all, 0),
         news: newsCount,
-        totalFundingLakhs: totalFunding._sum.amntFunded ?? 0,
+        totalFundingLakhs: totalFundingAmount,
       },
       // Breakdown arrays
       projects: projectCounts.map(p => ({ category: p.status, count: p._count._all })),

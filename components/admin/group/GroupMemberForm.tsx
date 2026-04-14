@@ -30,6 +30,7 @@ export interface GroupMemberFormData {
   profileImgUrl: string;
   profileLink: string;
   imageFile?: File;
+  phoneNumber?: string;
 }
 
 interface GroupMemberFormProps {
@@ -53,6 +54,23 @@ const CATEGORIES = [
   "OTHER",
 ];
 
+const getFullImageUrl = (url: string | null) => {
+  if (!url) return "";
+  if (url.startsWith("http")) return url;
+  if (url.startsWith("blob:")) return url;
+  if (url.startsWith("/")) return url;
+  
+  // If it starts with members/ it's in the public folder
+  if (url.startsWith("members/")) return `/${url}`;
+
+  // If it's a Cloudinary hash, prepend Cloudinary base URL
+  const publicUrl = process.env.NEXT_PUBLIC_CLOUDINARY_URL;
+  if (publicUrl) return `${publicUrl}/${url}`;
+  
+  // Fallback to default Cloudinary URL format if env is missing
+  return `https://res.cloudinary.com/chem-web/image/upload/${url}`;
+};
+
 const GroupMemberForm = ({
   initialData,
   onSubmit,
@@ -68,12 +86,49 @@ const GroupMemberForm = ({
     category: initialData?.category || "",
     profileImgUrl: initialData?.profileImgUrl || "",
     profileLink: initialData?.profileLink || "",
+    phoneNumber: initialData?.phoneNumber || "",
   });
 
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        name: initialData.name || "",
+        email: initialData.email || "",
+        researchAreas: initialData.researchAreas || "",
+        designation: initialData.designation || "",
+        category: initialData.category || "",
+        profileImgUrl: initialData.profileImgUrl || "",
+        profileLink: initialData.profileLink || "",
+        phoneNumber: initialData.phoneNumber || "",
+      });
+
+      // Handle image preview and tab selection
+      const imgUrl = initialData.profileImgUrl || "";
+      setPreviewUrl(imgUrl);
+
+      // Determine if image is Cloudinary hash, External URL or Local Path
+      const isCloudinary = imgUrl && !imgUrl.startsWith("http") && !imgUrl.startsWith("/") && !imgUrl.startsWith("members/");
+      const isExternal = imgUrl.startsWith("http");
+      
+      if (isExternal) {
+        setImageOption("url");
+      } else {
+        // Local files and Cloudinary hashes both use the Upload tab logic
+        setImageOption("upload");
+      }
+    }
+  }, [initialData]);
+
   const [researchAreaInput, setResearchAreaInput] = useState("");
-  const [previewUrl, setPreviewUrl] = useState<string>(initialData?.profileImgUrl || "");
+  const [previewUrl, setPreviewUrl] = useState<string>(
+    initialData?.profileImgUrl || ""
+  );
   const [imageOption, setImageOption] = useState<"upload" | "url">(
-    initialData?.profileImgUrl && !initialData.profileImgUrl.includes("blob:") ? "url" : "upload"
+    initialData?.profileImgUrl &&
+      !initialData.profileImgUrl.startsWith("blob:") &&
+      !initialData.profileImgUrl.startsWith("/")
+      ? "url"
+      : "upload"
   );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,7 +182,11 @@ const GroupMemberForm = ({
             {previewUrl && (
               <div className="flex items-center gap-4 mb-2">
                 <div className="relative w-24 h-24 border-2 border-white shadow-md rounded-lg overflow-hidden bg-white">
-                  <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                  <img 
+                    src={getFullImageUrl(previewUrl)} 
+                    alt="Preview" 
+                    className="w-full h-full object-cover" 
+                  />
                   <button
                     type="button"
                     onClick={removeImage}
@@ -204,7 +263,7 @@ const GroupMemberForm = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div className="grid gap-2">
             <Label htmlFor="category">Category <span className="text-red-500">*</span></Label>
             <Select value={formData.category} onValueChange={handleCategoryChange}>
@@ -219,6 +278,16 @@ const GroupMemberForm = ({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="phoneNumber">Phone Number</Label>
+            <Input
+              id="phoneNumber"
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleInputChange}
+              placeholder="e.g. +1-234-567-8901"
+            />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="designation">Designation</Label>

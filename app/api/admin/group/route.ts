@@ -14,9 +14,9 @@ export async function POST(req: NextRequest) {
         const email = formData.get("email") as string;
         const category = formData.get("category") as GroupCategory;
         const designation = formData.get("designation") as string;
+        const phoneNumber = formData.get("phoneNumber") as string;
         const profileLink = formData.get("profileLink") as string;
-        const researchAreasStr = formData.get("researchAreas") as string;
-        const researchAreas = researchAreasStr ? JSON.parse(researchAreasStr) : [];
+        const researchAreas = formData.get("researchAreas") as string;
         const image = formData.get("image") as File | null;
         let profileImgUrl = formData.get("profileImgUrl") as string || "";
 
@@ -27,20 +27,23 @@ export async function POST(req: NextRequest) {
         // Only upload to Cloudinary if a file was provided.
         // If image is null, it will use the profileImgUrl string from the URL input.
         if (image && typeof image !== "string" && image.size > 0) {
-            profileImgUrl = await uploadToCloudinary(image,"group-members");
+            profileImgUrl = await uploadToCloudinary(image,"members");
         }
 
         const member = await prisma.groupMembers.create({
             data: {
                 name,
                 email,
-                researchAreas,
+                researchAreas: researchAreas || "",
                 designation,
                 category,
                 profileImgUrl,
                 profileLink,
+                phoneNumber,
             }
         });
+
+      
 
         return NextResponse.json({ message: "Group member added successfully", member }, { status: 201 });
     } catch (error: any) {

@@ -9,6 +9,7 @@ import { ShowToast } from '@/components/showToast'
 import { LoginSchema } from "@/types/types"
 import { Card, CardTitle, CardContent, CardFooter } from '@/components/ui/card'
 import { ZodError } from 'zod'
+import Link from 'next/link'
 
 export default function Auth() {
   const router = useRouter();
@@ -72,10 +73,11 @@ export default function Auth() {
             </div>
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className='flex flex-col items-center'>
           <Button className='w-full' onClick={handleLogin} disabled={loading}>
             {loading ? "Logging in..." : "Login"}
           </Button>
+          <Link href="/" className='text-sm text-gray-500 mt-2 block text-center'>Back to Home</Link>
         </CardFooter>
       </Card>
     </div>

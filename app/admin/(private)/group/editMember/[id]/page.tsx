@@ -38,9 +38,10 @@ export default function EditMemberPage({ params }: { params: Promise<{ id: strin
       formData.append("name", data.name);
       formData.append("email", data.email);
       formData.append("category", data.category);
+      formData.append("phoneNumber", data.phoneNumber || "");
       formData.append("designation", data.designation || "");
       formData.append("profileLink", data.profileLink || "");
-      formData.append("researchAreas", JSON.stringify(data.researchAreas));
+      formData.append("researchAreas", data.researchAreas);
       
       if (data.imageFile) {
         formData.append("image", data.imageFile);

@@ -227,8 +227,7 @@ const ResearchPage = () => {
                   {[
                     { value: 'newest' as const, label: 'Newest' },
                     { value: 'oldest' as const, label: 'Oldest' },
-                    { value: 'amount-high' as const, label: 'Amount High→Low' },
-                    { value: 'amount-low' as const, label: 'Amount Low→High' },
+        
                   ].map(({ value, label }) => (
                     <button
                       key={value}

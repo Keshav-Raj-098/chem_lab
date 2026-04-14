@@ -27,7 +27,9 @@ export async function uploadToCloudinary(file: File,folder:string): Promise<stri
     });
 
     // console.log("Cloudinary upload response:", uploadResponse);
-    return (uploadResponse as any).secure_url;
+    // Return relative path: public_id.format
+    const res = uploadResponse as any;
+    return `${res.public_id}.${res.format}`;
     
   } catch (error) {
     console.error("Cloudinary upload error:", error);
