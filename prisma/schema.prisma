@@ -24,8 +24,8 @@ model ResearchProjects {
   id   String @id @default(uuid())
   title String
   description String
-  body String
-  mainImg String
+  body String @default("")
+  mainImg String @default("")
   imgs String[]
   links String[]
   fundingAgencies String[]
