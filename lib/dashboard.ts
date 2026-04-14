@@ -10,11 +10,9 @@ export async function getDashboardStats() {
     awardCounts,
     publicationCounts,
     newsCount,
-    totalFunding,
     recentNews,
     projectTrend,
     publicationTrend,
-    fundingByYearRaw,
     latestProjects,
   ] = await Promise.all([
     prisma.researchProjects.groupBy({ by: ["status"], _count: { _all: true } }),
@@ -23,8 +21,6 @@ export async function getDashboardStats() {
     prisma.awards.groupBy({ by: ["type"], _count: { _all: true } }),
     prisma.publications.groupBy({ by: ["category"], _count: { _all: true } }),
     prisma.newsAndAnnouncements.count(),
-
-    prisma.researchProjects.aggregate({ _sum: { amntFunded: true } }),
 
     prisma.newsAndAnnouncements.findMany({
       take: 5,
@@ -47,14 +43,6 @@ export async function getDashboardStats() {
       ORDER BY year ASC
     `,
 
-    prisma.$queryRaw<{ year: number; total: number }[]>`
-      SELECT EXTRACT(YEAR FROM "createdAt")::int AS year,
-             COALESCE(SUM("amntFunded"), 0)::float AS total
-      FROM "ResearchProjects"
-      GROUP BY year
-      ORDER BY year ASC
-    `,
-
     prisma.researchProjects.findMany({
       take: 4,
       orderBy: { createdAt: "desc" },
@@ -62,7 +50,6 @@ export async function getDashboardStats() {
         id: true,
         title: true,
         status: true,
-        amntFunded: true,
         createdAt: true,
       },
     }),
@@ -81,10 +68,6 @@ export async function getDashboardStats() {
     .filter(r => r.year >= currentYear - 5)
     .map(r => ({ year: Number(r.year), count: Number(r.count) }));
 
-  const fundingByYear = fundingByYearRaw
-    .filter(r => r.year >= currentYear - 5)
-    .map(r => ({ year: Number(r.year), total: Number(r.total) }));
-
   const ongoing   = projectCounts.find(p => p.status === "ONGOING")?._count._all ?? 0;
   const completed = projectCounts.find(p => p.status === "COMPLETED")?._count._all ?? 0;
   const planned   = projectCounts.find(p => p.status === "PLANNED")?._count._all ?? 0;
@@ -100,7 +83,6 @@ export async function getDashboardStats() {
       equipment: equipmentCounts.reduce((s, e) => s + e._count._all, 0),
       awards: awardCounts.reduce((s, a) => s + a._count._all, 0),
       news: newsCount,
-      totalFundingLakhs: Number(totalFunding._sum.amntFunded ?? 0),
     },
     projects: projectCounts.map(p => ({ category: p.status, count: p._count._all })),
     equipments: equipmentCounts.map(e => ({ category: e.category, count: e._count._all })),
@@ -109,12 +91,10 @@ export async function getDashboardStats() {
     publications: publicationCounts.map(p => ({ category: p.category, count: p._count._all })),
     projectTrend: MONTHS.map(m => ({ month: m, count: projectTrendMap[m] ?? 0 })),
     publicationTrend: pubTrendNorm,
-    fundingByYear,
     latestProjects: latestProjects.map(p => ({
       id: p.id,
       title: p.title,
       status: p.status,
-      amntFunded: p.amntFunded ? Number(p.amntFunded) : null,
       createdAt: p.createdAt.toISOString(),
     })),
     recentNews: recentNews.map(n => ({

@@ -20,11 +20,12 @@ interface Project {
   title: string;
   description: string;
   status: string;
-  amntFunded: number;
+  type: string;
+  amntFunded: string;
   duration: string;
-  body: string;
-  fundingAgencies: string[];
-  investigators: string[];
+  fundingAgencies: string;
+  investigators: string;
+  contributors: string;
   completedOn: string;
 }
 
@@ -69,10 +70,11 @@ export default function AdminProjectsTable({ refreshTrigger, setRefreshTrigger }
 
   const columns: Column<Project>[] = [
     { header: "Title", accessorKey: "title" },
+    { header: "Type", accessorKey: "type" },
     { header: "Status", accessorKey: "status" },
     { header: "Duration", accessorKey: "duration" },
     { 
-        header: "Amount (Lakhs)", 
+        header: "Amount", 
         accessorKey: "amntFunded",
         cell: (row: Project) => row.amntFunded ? `₹${row.amntFunded}` : "-" 
     },

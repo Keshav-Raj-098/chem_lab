@@ -24,8 +24,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         const { id } = await params;
         const body = await req.json();
 
-        if (!body || !body.title || !body.description || !body.body) {
-            return NextResponse.json({ error: "Title, description, and body are required" }, { status: 400 });
+        if (!body || !body.title || !body.description) {
+            return NextResponse.json({ error: "Title and description are required" }, { status: 400 });
         }
 
         const updatedProject = await prisma.researchProjects.update({
@@ -33,16 +33,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             data: {
                 title: body.title,
                 description: body.description,
-                body: body.body,
-                mainImg: body.mainImg,
-                imgs: body.imgs,
-                links: body.links,
                 fundingAgencies: body.fundingAgencies,
                 investigators: body.investigators,
                 contributors: body.contributors,
                 duration: body.duration,
                 status: body.status,
-                amntFunded: body.amntFunded ? parseFloat(body.amntFunded) : null,
+                amntFunded: body.amntFunded,
                 completedOn: body.completedOn ? new Date(body.completedOn) : null,
             },
         });

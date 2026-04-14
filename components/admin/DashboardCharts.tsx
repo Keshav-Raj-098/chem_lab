@@ -7,18 +7,17 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import {
-  BarChart, Bar,
   XAxis, YAxis,
   CartesianGrid,
   PieChart, Pie,
   AreaChart, Area,
   RadialBarChart, RadialBar, PolarAngleAxis,
-  ComposedChart, Line,
+  ComposedChart, Line, Bar,
 } from "recharts";
 import {
   FlaskConical, Users, Trophy,
   BookOpen, Newspaper, Briefcase,
-  TrendingUp, Activity, Banknote,
+  TrendingUp, Activity,
 } from "lucide-react";
 
 // ─── Palette ────────────────────────────────────────────────────────────────
@@ -61,11 +60,10 @@ const P = {
 interface StatItem     { category: string; count: number }
 interface TrendPoint   { month: string; count: number }
 interface PubTrendPoint { year: number; count: number }
-interface FundingPoint { year: number; total: number }
 interface RecentNews   { id: string; title: string; createdAt: string }
 interface LatestProject {
   id: string; title: string; status: string;
-  amntFunded: number | null; createdAt: string;
+  createdAt: string;
 }
 
 export interface DashboardStats {
@@ -79,7 +77,6 @@ export interface DashboardStats {
     equipment: number;
     awards: number;
     news: number;
-    totalFundingLakhs: number;
   };
   projects:         StatItem[];
   equipments:       StatItem[];
@@ -88,7 +85,6 @@ export interface DashboardStats {
   publications:     StatItem[];
   projectTrend:     TrendPoint[];
   publicationTrend: PubTrendPoint[];
-  fundingByYear:    FundingPoint[];
   latestProjects:   LatestProject[];
   recentNews:       RecentNews[];
 }
@@ -96,7 +92,6 @@ export interface DashboardStats {
 // ─── Chart configs ──────────────────────────────────────────────────────────
 const trendConfig   = { count: { label: "Projects",     color: P.indigo } } satisfies ChartConfig;
 const pubConfig     = { count: { label: "Publications", color: P.teal   } } satisfies ChartConfig;
-const fundingConfig = { total: { label: "₹ Lakhs",      color: P.amber  } } satisfies ChartConfig;
 const memberConfig  = { count: { label: "Members"                       } } satisfies ChartConfig;
 const statusConfig  = { value: { label: "Projects"                      } } satisfies ChartConfig;
 
@@ -289,14 +284,6 @@ export function DashboardCharts({ stats }: { stats: DashboardStats }) {
       accentSoft: P.tealSoft,
     },
     {
-      label:      "Total Funding",
-      value:      `₹${fmtLakhs(t.totalFundingLakhs)}`,
-      sub:        `across ${t.projects} grants`,
-      icon:       Banknote,
-      accent:     P.amber,
-      accentSoft: P.amberSoft,
-    },
-    {
       label:      "Publications",
       value:      fmt(t.publications),
       sub:        `${journalCount} journal articles`,
@@ -426,48 +413,10 @@ export function DashboardCharts({ stats }: { stats: DashboardStats }) {
         </div>
       </section>
 
-      {/* ─── Funding + Publications trend ───────────────────────────────── */}
+      {/* ─── Publications trend ────────────────────────────────────────── */}
       <section>
         <SectionLabel>Research output</SectionLabel>
-        <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-          {/* Funding portfolio */}
-          <ChartCard
-            title="Funding Portfolio"
-            description="Grants secured by year · ₹ Lakhs"
-            icon={Banknote}
-            iconBg={P.amberSoft}
-            iconColor={P.amber}
-          >
-            {stats.fundingByYear.length === 0 ? (
-              <EmptyState>No funding records yet</EmptyState>
-            ) : (
-              <ChartContainer config={fundingConfig} className="h-52 w-full">
-                <BarChart
-                  data={stats.fundingByYear}
-                  barSize={24}
-                  margin={{ top: 6, right: 6, left: -22, bottom: 0 }}
-                >
-                  <defs>
-                    <linearGradient id="amberGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%"   stopColor={P.amber} stopOpacity={0.95} />
-                      <stop offset="100%" stopColor={P.amber} stopOpacity={0.55} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid vertical={false} stroke={P.grid} strokeDasharray="4 4" />
-                  <XAxis dataKey="year" tickLine={false} axisLine={false}
-                    tick={{ fontSize: 10, fill: P.tick }} tickMargin={8} />
-                  <YAxis tickLine={false} axisLine={false}
-                    tick={{ fontSize: 10, fill: P.tick }} allowDecimals={false} />
-                  <ChartTooltip
-                    content={<ChartTooltipContent />}
-                    cursor={{ fill: P.amber, opacity: 0.06 }}
-                  />
-                  <Bar dataKey="total" fill="url(#amberGrad)" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ChartContainer>
-            )}
-          </ChartCard>
-
+        <div className="grid gap-4 grid-cols-1">
           {/* Publications per year — bar + trend line */}
           <ChartCard
             title="Publication Output"
@@ -729,13 +678,8 @@ export function DashboardCharts({ stats }: { stats: DashboardStats }) {
                             >
                               {titleCase(p.status)}
                             </span>
-                            {p.amntFunded != null && (
-                              <span className="text-[10px] text-zinc-500 tabular-nums">
-                                ₹{p.amntFunded.toFixed(1)} L
-                              </span>
-                            )}
                             <span className="text-[10px] text-zinc-400">
-                              · {timeAgo(p.createdAt)}
+                              {timeAgo(p.createdAt)}
                             </span>
                           </div>
                         </div>

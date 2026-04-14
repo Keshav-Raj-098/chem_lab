@@ -34,18 +34,16 @@ export default function EditProjectPage() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    body: "",
     status: "PLANNED",
+    type: "NON_FUNDED",
     duration: "",
     amntFunded: "",
     completedOn: "",
-    mainImg: "",
   });
 
-  const [fundingAgencies, setFundingAgencies] = useState<string[]>([]);
-  const [investigators, setInvestigators] = useState<string[]>([]);
-  const [tempAgency, setTempAgency] = useState("");
-  const [tempInvestigator, setTempInvestigator] = useState("");
+  const [fundingAgencies, setFundingAgencies] = useState("");
+  const [investigators, setInvestigators] = useState("");
+  const [contributors, setContributors] = useState("");
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -55,15 +53,15 @@ export default function EditProjectPage() {
         setFormData({
           title: data.title || "",
           description: data.description || "",
-          body: data.body || "",
           status: data.status || "PLANNED",
+          type: data.type || "NON_FUNDED",
           duration: data.duration || "",
           amntFunded: data.amntFunded || "",
           completedOn: data.completedOn ? data.completedOn.split('T')[0] : "",
-          mainImg: data.mainImg || "",
         });
-        setFundingAgencies(data.fundingAgencies || []);
-        setInvestigators(data.investigators || []);
+        setFundingAgencies(data.fundingAgencies || "");
+        setInvestigators(data.investigators || "");
+        setContributors(data.contributors || "");
       } catch (error) {
         toast.error("Failed to load project details");
         router.push("/admin/projects");
@@ -75,18 +73,9 @@ export default function EditProjectPage() {
     if (id) fetchProject();
   }, [id, router]);
 
-  const addArrayItem = (setter: React.Dispatch<React.SetStateAction<string[]>>, val: string) => {
-    if (!val.trim()) return;
-    setter(prev => [...prev, val.trim()]);
-  };
-
-  const removeArrayItem = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number) => {
-    setter(prev => prev.filter((_, i) => i !== index));
-  };
-
   const handleUpdate = async () => {
-    if (!formData.title || !formData.description || !formData.body) {
-      toast.error("Please fill in required fields (Title, Description, and Body)");
+    if (!formData.title || !formData.description) {
+      toast.error("Please fill in required fields (Title and Description)");
       return;
     }
 
@@ -96,6 +85,7 @@ export default function EditProjectPage() {
         ...formData,
         fundingAgencies,
         investigators,
+        contributors,
       });
 
       toast.success("Project updated successfully");
@@ -139,15 +129,14 @@ export default function EditProjectPage() {
           
           <div className="grid gap-2">
             <Label htmlFor="description" className="text-base font-semibold">Short Description* (Subtitle)</Label>
-            <Textarea 
-              id="description" 
-              className="min-h-25"
-              value={formData.description} 
-              onChange={e => setFormData({...formData, description: e.target.value})} 
+            <RichTextEditor
+              placeholder="A brief description of the project (max 150 characters)"
+              value={formData.description}
+              onChange={value => setFormData({...formData, description: value})}
             />
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="grid gap-2">
               <Label htmlFor="status" className="text-base font-semibold">Status</Label>
               <Select value={formData.status} onValueChange={val => setFormData({...formData, status: val || "PLANNED"})}>
@@ -158,6 +147,18 @@ export default function EditProjectPage() {
                   <SelectItem value="PLANNED">Planned</SelectItem>
                   <SelectItem value="ONGOING">Ongoing</SelectItem>
                   <SelectItem value="COMPLETED">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="type" className="text-base font-semibold">Type</Label>
+              <Select value={formData.type} onValueChange={val => setFormData({...formData, type: val || "NON_FUNDED"})}>
+                <SelectTrigger className="h-11">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FUNDED">Funded</SelectItem>
+                  <SelectItem value="NON_FUNDED">Non-Funded</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -174,15 +175,17 @@ export default function EditProjectPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="grid gap-2">
-              <Label htmlFor="amnt" className="text-base font-semibold">Amount Funded (Lakhs INR)</Label>
+              <Label htmlFor="amnt" className="text-base font-semibold">Amount Funded</Label>
               <Input 
                 id="amnt" 
                 className="h-11"
-                type="number" 
-                step="0.01" 
                 value={formData.amntFunded} 
-                onChange={e => setFormData({...formData, amntFunded: e.target.value})} 
+                disabled={formData.type === "NON_FUNDED"}
+                onChange={
+                  e => setFormData({...formData, amntFunded: e.target.value})
+                } 
               />
+              {formData.type === "NON_FUNDED" && <p className="text-sm text-muted-foreground">Amount is disabled for non-funded projects</p>}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="completed" className="text-base font-semibold">Completed On (Optional)</Label>
@@ -196,40 +199,53 @@ export default function EditProjectPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex flex-col gap-3">
             <div className="grid gap-2">
-              <Label className="text-base font-semibold">Funding Agencies</Label>
-              <div className="flex gap-2">
-                <Input value={tempAgency} onChange={e => setTempAgency(e.target.value)} placeholder="Add agency" className="h-11" />
-                <Button type="button" size="sm" className="h-11 px-6" onClick={() => { addArrayItem(setFundingAgencies, tempAgency); setTempAgency(""); }}>Add</Button>
-              </div>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {fundingAgencies.map((item, idx) => (
-                  <span key={idx} className="bg-blue-50 text-blue-700 border border-blue-200 text-sm px-3 py-1.5 rounded-full flex items-center">
-                    {item} <X className="ml-2 h-3.5 w-3.5 cursor-pointer" onClick={() => removeArrayItem(setFundingAgencies, idx)} />
-                  </span>
-                ))}
-              </div>
+              <Label htmlFor="funding" className="text-base font-semibold">Funding Agencies</Label>
+              {/* <Input 
+                id="funding" 
+                className="h-11"
+                value={fundingAgencies} 
+                onChange={e => setFundingAgencies(e.target.value)} 
+                placeholder="List funding agencies"
+              /> */}
+              <RichTextEditor
+                placeholder="List funding agencies (if any)"
+                value={fundingAgencies}
+                onChange={value => setFundingAgencies(value)}
+              />
             </div>
             <div className="grid gap-2">
-              <Label className="text-base font-semibold">Investigators</Label>
-              <div className="flex gap-2">
-                <Input value={tempInvestigator} onChange={e => setTempInvestigator(e.target.value)} placeholder="Add investigator" className="h-11" />
-                <Button type="button" size="sm" className="h-11 px-6" onClick={() => { addArrayItem(setInvestigators, tempInvestigator); setTempInvestigator(""); }}>Add</Button>
-              </div>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {investigators.map((item, idx) => (
-                  <span key={idx} className="bg-green-50 text-green-700 border border-green-200 text-sm px-3 py-1.5 rounded-full flex items-center">
-                    {item} <X className="ml-2 h-3.5 w-3.5 cursor-pointer" onClick={() => removeArrayItem(setInvestigators, idx)} />
-                  </span>
-                ))}
-              </div>
+              <Label htmlFor="investigators" className="text-base font-semibold">Investigators</Label>
+              {/* <Input 
+                id="investigators" 
+                className="h-11"
+                value={investigators} 
+                onChange={e => setInvestigators(e.target.value)} 
+                placeholder="List investigators"
+              /> */}
+              <RichTextEditor
+                placeholder="List investigators"
+                value={investigators}
+                onChange={value => setInvestigators(value)}
+              />
             </div>
           </div>
 
           <div className="grid gap-2">
-            <Label className="text-base font-semibold">Project Body / Full Content*</Label>
-            <RichTextEditor value={formData.body} onChange={val => setFormData({...formData, body: val})} />
+            <Label htmlFor="contributors" className="text-base font-semibold">Contributors</Label>
+            {/* <Input 
+              id="contributors" 
+              className="h-11"
+              value={contributors} 
+              onChange={e => setContributors(e.target.value)} 
+              placeholder="List contributors"
+            /> */}
+            <RichTextEditor
+              placeholder="List contributors"
+              value={contributors}
+              onChange={value => setContributors(value)}
+             />
           </div>
         </div>
       </div>

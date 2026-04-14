@@ -14,11 +14,17 @@ import {
 import { toast } from "sonner";
 import { X, Upload, Link } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import dynamic from "next/dynamic";
+
+const RichTextEditor = dynamic(() => import("@/components/admin/textEditor"), {
+  ssr: false,
+  loading: () => <div className="h-64 border rounded-md bg-muted/20 animate-pulse flex items-center justify-center text-muted-foreground text-sm">Loading editor...</div>
+});
 
 export interface GroupMemberFormData {
   name: string;
   email: string;
-  researchAreas: string[];
+  researchAreas: string;
   designation: string;
   category: string;
   profileImgUrl: string;
@@ -57,7 +63,7 @@ const GroupMemberForm = ({
   const [formData, setFormData] = useState<GroupMemberFormData>({
     name: initialData?.name || "",
     email: initialData?.email || "",
-    researchAreas: initialData?.researchAreas || [],
+    researchAreas: initialData?.researchAreas || "",
     designation: initialData?.designation || "",
     category: initialData?.category || "",
     profileImgUrl: initialData?.profileImgUrl || "",
@@ -101,23 +107,9 @@ const GroupMemberForm = ({
     }
   };
 
-  const addResearchArea = () => {
-    if (!researchAreaInput.trim()) return;
-    setFormData((prev) => ({
-      ...prev,
-      researchAreas: [...prev.researchAreas, researchAreaInput.trim()],
-    }));
-    setResearchAreaInput("");
-  };
 
-  const removeResearchArea = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      researchAreas: prev.researchAreas.filter((_, i) => i !== index),
-    }));
-  };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.category) {
       toast.error("Please fill in all required fields (Name, Email, Category)");
@@ -243,39 +235,13 @@ const GroupMemberForm = ({
         <div className="grid gap-2">
           <Label htmlFor="researchAreas">Research Areas</Label>
           <div className="flex gap-2">
-            <Input
-              id="researchAreaInput"
-              value={researchAreaInput}
-              onChange={(e) => setResearchAreaInput(e.target.value)}
-              placeholder="Add a research area"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addResearchArea();
-                }
-              }}
+            <RichTextEditor
+              placeholder="A brief description of the research areas"
+              value={formData.researchAreas}
+              onChange={value => setFormData({...formData, researchAreas: value})}
             />
-            <Button type="button" onClick={addResearchArea} variant="outline" size="sm">
-              Add
-            </Button>
           </div>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {formData.researchAreas.map((area, index) => (
-              <div
-                key={index}
-                className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-1 rounded flex items-center gap-1"
-              >
-                {area}
-                <button
-                  type="button"
-                  onClick={() => removeResearchArea(index)}
-                  className="text-blue-600 hover:text-blue-800"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
-          </div>
+
         </div>
 
         <div className="grid gap-2">

@@ -20,20 +20,22 @@ enum ResearchStatus {
   PLANNED
 }
 
+enum ResearchProjectType {
+  FUNDED
+  NON_FUNDED
+}
+
 model ResearchProjects {
   id   String @id @default(uuid())
   title String
-  description String
-  body String
-  mainImg String
-  imgs String[]
-  links String[]
-  fundingAgencies String[]
-  investigators String[]
-  contributors String[]
+  description String?
+  fundingAgencies String?
+  investigators String?
+  contributors String?
   duration String?
   status ResearchStatus @default(PLANNED)
-  amntFunded Decimal? @db.Decimal(10,2)    // in Lakhs INR
+  type ResearchProjectType @default(NON_FUNDED)
+  amntFunded String?
   completedOn DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -77,7 +79,7 @@ model GroupMembers {
   id String @id @default(uuid())
   name String
   email String @unique
-  researchAreas String[]
+  researchAreas String
   designation String?
   category GroupCategory  
   profileImgUrl String?
@@ -104,7 +106,6 @@ model Awards {
 
 enum PublicationCategory {
   PATENTS
-  PUBLICATION
   JOURNAL
   CONFERENCE
   PRESENTATION
