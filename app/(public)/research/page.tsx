@@ -2,8 +2,22 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { fetchResearchByStatus } from '@/lib/load_data/loadResearch'
-import { ResearchStatus } from '@/lib/generated/prisma/enums'
-import { Loader2, ChevronDown } from 'lucide-react'
+import { ResearchStatus, ResearchProjectType } from '@/lib/generated/prisma/enums'
+import { 
+  Loader2, 
+  ChevronDown, 
+  CheckCircle2, 
+  FlaskConical, 
+  TrendingUp, 
+  History, 
+  Sparkles, 
+  Target, 
+  Layers, 
+  Calendar, 
+  Building2, 
+  Coins,
+  Users
+} from 'lucide-react'
 import ResearchAnimations from '@/components/pub/researchAnimations'
 
 interface Project {
@@ -16,129 +30,184 @@ interface Project {
   contributors: string[]
   duration: string | null
   status: ResearchStatus
+  type: ResearchProjectType
   amntFunded: string | number | null
   completedOn: string | Date | null
   createdAt: string | Date
 }
 
 const ResearchPage = () => {
-  const [status, setStatus] = useState<ResearchStatus | 'ALL'>('ALL')
   const [data, setData] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'amount-high' | 'amount-low'>('newest')
   const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [statusOpen, setStatusOpen] = useState(false)
-  const [sortOpen, setSortOpen] = useState(false)
+  
+  // Visibility counts for sections
+  const [visibleFunded, setVisibleFunded] = useState(6)
+  const [visibleNonFunded, setVisibleNonFunded] = useState(6)
 
   const loadData = useCallback(async () => {
     setLoading(true)
-    const res = await fetchResearchByStatus(1, status === 'ALL' ? ResearchStatus.ONGOING : status, 100)
-    if (res.success) {
-      let allData = res.data as unknown as Project[]
-      if (status === 'ALL') {
-        const completed = await fetchResearchByStatus(1, ResearchStatus.COMPLETED, 100)
-        const planned = await fetchResearchByStatus(1, ResearchStatus.PLANNED, 100)
-        if (completed.success) allData = [...allData, ...(completed.data as unknown as Project[])]
-        if (planned.success) allData = [...allData, ...(planned.data as unknown as Project[])]
-      }
-      setData(allData)
-    }
+    const ongoingRes = await fetchResearchByStatus(1, ResearchStatus.ONGOING, 100)
+    const completedRes = await fetchResearchByStatus(1, ResearchStatus.COMPLETED, 100)
+    const plannedRes = await fetchResearchByStatus(1, ResearchStatus.PLANNED, 100)
+
+    let allData: Project[] = []
+    if (ongoingRes.success) allData = [...allData, ...(ongoingRes.data as unknown as Project[])]
+    if (completedRes.success) allData = [...allData, ...(completedRes.data as unknown as Project[])]
+    if (plannedRes.success) allData = [...allData, ...(plannedRes.data as unknown as Project[])]
+
+    setData(allData)
     setLoading(false)
-  }, [status])
+  }, [])
 
   useEffect(() => {
     loadData()
   }, [loadData])
 
-  const sortedData = [...data].sort((a, b) => {
-    if (sortBy === 'newest') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    if (sortBy === 'oldest') return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    const amountA = parseFloat(a.amntFunded?.toString() || '0')
-    const amountB = parseFloat(b.amntFunded?.toString() || '0')
-    if (sortBy === 'amount-high') return amountB - amountA
-    return amountA - amountB
-  })
-
-  const getStatusColor = (s: ResearchStatus) => {
-    if (s === ResearchStatus.ONGOING) return 'text-teal-600'
-    if (s === ResearchStatus.COMPLETED) return 'text-slate-600'
-    return 'text-amber-600'
+  const getProcessedData = (type: ResearchProjectType) => {
+    const filtered = data.filter(p => p.type === type)
+    return filtered.sort((a, b) => {
+      // Prioritize ONGOING projects
+      if (a.status === ResearchStatus.ONGOING && b.status !== ResearchStatus.ONGOING) return -1
+      if (a.status !== ResearchStatus.ONGOING && b.status === ResearchStatus.ONGOING) return 1
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    })
   }
 
-  const ProjectCard = ({ project, index }: { project: Project; index: number }) => {
-    const isExpanded = expandedId === project.id
+  const fundedProjects = getProcessedData(ResearchProjectType.FUNDED)
+  const nonFundedProjects = getProcessedData(ResearchProjectType.NON_FUNDED)
 
-    const handleToggle = () => {
-      setExpandedId(isExpanded ? null : project.id)
+  const getStatusInfo = (s: ResearchStatus) => {
+    switch (s) {
+      case ResearchStatus.ONGOING: return { label: 'Ongoing', color: 'bg-amber-100 text-amber-800 border-amber-200', icon: <TrendingUp className="w-3.5 h-3.5" /> }
+      case ResearchStatus.COMPLETED: return { label: 'Completed', color: 'bg-emerald-100 text-emerald-800 border-emerald-200', icon: <CheckCircle2 className="w-3.5 h-3.5" /> }
+      default: return { label: 'Planned', color: 'bg-indigo-100 text-indigo-800 border-indigo-200', icon: <FlaskConical className="w-3.5 h-3.5" /> }
     }
+  }
 
-    const statusLabel = project.status === ResearchStatus.ONGOING ? 'Ongoing' : project.status === ResearchStatus.COMPLETED ? 'Completed' : 'Planned'
+  const ProjectCard = ({ project }: { project: Project }) => {
+    const isExpanded = expandedId === project.id
+    const status = getStatusInfo(project.status)
 
     return (
       <div
-        className="group relative bg-white py-2 px-3 border border-slate-100 rounded-lg transition-all duration-300 hover:bg-slate-50 hover:border-teal-200 mb-2"
-        onClick={handleToggle}
+        className={`group relative bg-white border rounded-2xl transition-all duration-500 overflow-hidden cursor-pointer ${
+          isExpanded 
+            ? 'border-teal-400 shadow-2xl shadow-teal-900/10 ring-1 ring-teal-500/20 z-10 scale-[1.01]' 
+            : 'border-slate-200 hover:border-teal-300 hover:shadow-xl hover:-translate-y-1'
+        }`}
+        onClick={() => setExpandedId(isExpanded ? null : project.id)}
       >
-        <div className="flex items-start gap-4">
-          <span className="text-teal-600/30 font-serif text-lg italic min-w-[1.5rem] mt-0.5 group-hover:text-teal-600 transition-colors">
-            {index + 1}.
-          </span>
-
-          <div className="flex-1 space-y-1">
-            {/* Title */}
-            <h3 className="text-[#0f2557] font-serif text-base leading-tight cursor-pointer group-hover:text-teal-700 transition-colors">
-              {project.title}
-            </h3>
-
-            {/* Metadata - Compact Inline Row */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-slate-500 font-sans">
-              {project.fundingAgencies && project.fundingAgencies.length > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Agency:</span>
-                  <span className="text-slate-700">{project.fundingAgencies[0]}</span>
-                </div>
-              )}
-
-              {project.duration && (
-                <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Period:</span>
-                  <span className="text-slate-700">{project.duration}</span>
-                </div>
-              )}
-
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Status:</span>
-                <span className={`${project.status === ResearchStatus.ONGOING ? 'text-amber-600' : 'text-teal-600'} font-medium`}>
-                  {statusLabel}
+        {/* Card Header Section */}
+        <div className="p-6 md:p-8">
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+            <div className="flex-1 space-y-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-widest border shadow-sm ${status.color}`}>
+                  {status.icon}
+                  {status.label}
                 </span>
+                {project.type === ResearchProjectType.FUNDED && (
+                  <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-widest shadow-md">
+                    Sponsored Project
+                  </span>
+                )}
               </div>
 
-              {project.amntFunded && (
-                <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Funding:</span>
-                  <span className="text-slate-700">₹{project.amntFunded}L</span>
-                </div>
-              )}
-            </div>
-          </div>
+              <h3 className={`font-serif leading-snug transition-colors duration-300 ${
+                isExpanded ? 'text-2xl md:text-3xl text-slate-900' : 'text-xl md:text-2xl text-[#0f2557] group-hover:text-teal-700'
+              }`}>
+                {project.title}
+              </h3>
 
-          <div className="self-center">
-            <ChevronDown className={`w-4 h-4 text-slate-300 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-teal-600' : 'group-hover:text-slate-400'}`} />
+              {/* Minimal Metadata Row */}
+              <div className="flex flex-wrap items-center gap-x-8 gap-y-3 pt-2">
+                {project.fundingAgencies && project.fundingAgencies[0] && (
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                      <Building2 className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Grantor</p>
+                      <p className="text-sm font-semibold text-slate-700">{project.fundingAgencies[0]}</p>
+                    </div>
+                  </div>
+                )}
+                {project.duration && (
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                      <Calendar className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Timeline</p>
+                      <p className="text-sm font-semibold text-slate-700">{project.duration}</p>
+                    </div>
+                  </div>
+                )}
+                {project.amntFunded && (
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500 border border-emerald-100">
+                      <Coins className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Funding</p>
+                      <p className="text-sm font-bold text-emerald-600">₹{project.amntFunded}L</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className={`hidden md:flex flex-shrink-0 items-center justify-center w-12 h-12 rounded-full border transition-all duration-300 ${
+              isExpanded ? 'bg-teal-600 border-teal-500 text-white rotate-180' : 'bg-slate-50 border-slate-200 text-slate-400 group-hover:text-teal-600 group-hover:border-teal-300'
+            }`}>
+              <ChevronDown className="w-6 h-6" />
+            </div>
           </div>
         </div>
 
-        {/* Expanded details */}
+        {/* Expanded Content View */}
         {isExpanded && (
-          <div className="mt-4 pt-4 border-t border-slate-100 ml-9 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="bg-slate-50/50 border-t border-slate-100 p-6 md:p-8 space-y-8 animate-in zoom-in-95 fade-in duration-500">
             {project.body && (
-              <div className="text-sm text-slate-600 leading-relaxed font-sans max-w-3xl" dangerouslySetInnerHTML={{ __html: project.body }} />
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-teal-600">
+                  <Layers className="w-4 h-4" />
+                  <span className="text-[11px] font-extrabold uppercase tracking-[0.2em]">Research Abstract</span>
+                </div>
+                <div 
+                  className="text-base text-slate-700 leading-relaxed font-sans max-w-4xl bg-white p-6 md:p-8 rounded-2xl border border-slate-100 shadow-sm" 
+                  dangerouslySetInnerHTML={{ __html: project.body }} 
+                />
+              </div>
             )}
 
-            <div className="flex gap-4 text-xs">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               {project.investigators && project.investigators.length > 0 && (
-                <div>
-                  <span className="font-bold text-slate-400 uppercase tracking-tighter mr-2">Lead:</span>
-                  <span className="text-slate-700">{project.investigators.join(', ')}</span>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-indigo-600">
+                    <Target className="w-4 h-4" />
+                    <span className="text-[11px] font-extrabold uppercase tracking-[0.2em]">Principal Investigators</span>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    {project.investigators.map((inv, i) => (
+                      <span key={i} className="px-4 py-2 bg-white text-slate-900 text-sm font-bold rounded-xl border border-slate-200 shadow-sm flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-indigo-500" />
+                        {inv}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {project.contributors && project.contributors.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-slate-500">
+                    <Users className="w-4 h-4" />
+                    <span className="text-[11px] font-extrabold uppercase tracking-[0.2em]">Key Contributors</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-sm text-slate-600 font-medium">
+                    {project.contributors.join(' • ')}
+                  </div>
                 </div>
               )}
             </div>
@@ -150,117 +219,134 @@ const ResearchPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white pt-28 flex items-center justify-center">
-        <Loader2 className="w-6 h-6 text-teal-600 animate-spin" />
+      <div className="min-h-screen bg-white pt-28 flex flex-col items-center justify-center gap-4">
+        <Loader2 className="w-10 h-10 text-teal-600 animate-spin" />
+        <p className="text-slate-400 text-sm font-bold uppercase tracking-widest animate-pulse">Initializing Lab Portfolio</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-slate-50 selection:bg-teal-200 selection:text-teal-900 pb-24">
       <ResearchAnimations />
 
-      {/* Header */}
-      <div className="pt-28 pb-6">
-        <div className="max-w-6xl mx-auto px-12">
-          <div data-anim="header-left">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-8 h-px bg-teal-600" />
-              <span className="text-xs font-medium tracking-widest uppercase text-teal-600">Research Portfolio</span>
+      {/* ═══ HERO SECTION ═══ */}
+      <div className="relative pt-20 pb-12 overflow-hidden bg-white border-b border-slate-200/60">
+        {/* Background Decorative Elements */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-teal-50/50 via-white to-white -z-10" />
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-teal-200/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 opacity-70 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-200/20 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3 opacity-70 pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
+          <div className="text-center max-w-3xl mx-auto space-y-5" data-anim="header-left">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-white text-[10px] font-bold tracking-widest uppercase shadow-sm cursor-default transition-transform hover:scale-105">
+              <Sparkles className="w-3 h-3 text-teal-400" />
+              Scientific Portfolio
             </div>
-            <h1 className="text-3xl md:text-4xl font-light tracking-tight text-slate-900">Research Projects</h1>
-            <p className="mt-2 text-sm text-slate-500 font-light max-w-2xl">
-              A comprehensive collection of ongoing and completed research initiatives across catalysis, materials science, and sustainable processes.
+            
+            <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
+              Research <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-blue-600">Projects</span>
+            </h1>
+            
+            <p className="text-base md:text-lg text-slate-600 font-medium leading-relaxed max-w-2xl mx-auto">
+              Advancing scientific frontiers through rigorous inquiry and strategic high-impact collaborations.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Filter bar */}
-      <div className="sticky top-[68px] z-40 bg-white border-y border-slate-100 py-3" data-anim="filter-bar">
-        <div className="max-w-6xl mx-auto px-12 flex items-center justify-between gap-4">
-          {/* Left: Status */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium tracking-widest uppercase text-slate-400">Filter</span>
-            <div className="relative">
-              <button
-                onClick={() => setStatusOpen(!statusOpen)}
-                className="flex items-center gap-2 px-3 py-1 text-sm font-light text-slate-700 cursor-pointer hover:text-teal-600 transition-colors"
-              >
-                {status === 'ALL' ? 'All' : status === ResearchStatus.ONGOING ? 'Ongoing' : status === ResearchStatus.COMPLETED ? 'Completed' : 'Planned'}
-                <ChevronDown className="w-3.5 h-3.5" />
-              </button>
-              {statusOpen && (
-                <div className="absolute top-full mt-1 left-0 bg-white border border-slate-200 shadow-md py-1 min-w-[140px] z-50">
-                  {['ALL', ResearchStatus.ONGOING, ResearchStatus.COMPLETED, ResearchStatus.PLANNED].map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => { setStatus(s as any); setStatusOpen(false) }}
-                      className={`w-full px-3 py-1.5 text-sm font-light text-left transition-colors ${
-                        status === s
-                          ? 'bg-teal-50 text-teal-700'
-                          : 'text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      {s === 'ALL' ? 'All' : s === ResearchStatus.ONGOING ? 'Ongoing' : s === ResearchStatus.COMPLETED ? 'Completed' : 'Planned'}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <span className="text-xs text-slate-400">({sortedData.length})</span>
-          </div>
-
-          {/* Right: Sort */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium tracking-widest uppercase text-slate-400">Sort</span>
-            <div className="relative">
-              <button
-                onClick={() => setSortOpen(!sortOpen)}
-                className="flex items-center gap-2 px-3 py-1 text-sm font-light text-slate-700 cursor-pointer hover:text-teal-600 transition-colors"
-              >
-                {sortBy === 'newest' ? 'Newest' : sortBy === 'oldest' ? 'Oldest' : sortBy === 'amount-high' ? 'Amount ↓' : 'Amount ↑'}
-                <ChevronDown className="w-3.5 h-3.5" />
-              </button>
-              {sortOpen && (
-                <div className="absolute top-full mt-1 right-0 bg-white border border-slate-200 shadow-md py-1 min-w-[140px] z-50">
-                  {[
-                    { value: 'newest' as const, label: 'Newest' },
-                    { value: 'oldest' as const, label: 'Oldest' },
+      {/* ═══ MAIN CONTENT ═══ */}
+      <main className="max-w-7xl mx-auto px-6 md:px-12 py-16 lg:py-24 space-y-24">
         
-                  ].map(({ value, label }) => (
-                    <button
-                      key={value}
-                      onClick={() => { setSortBy(value); setSortOpen(false) }}
-                      className={`w-full px-3 py-1.5 text-sm font-light text-left transition-colors ${
-                        sortBy === value
-                          ? 'bg-teal-50 text-teal-700'
-                          : 'text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              )}
+        {/* SECTION: FUNDED RESEARCH */}
+        <section data-anim="funded-section">
+          <div className="flex items-end justify-between mb-8 pb-4 border-b border-slate-200">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
+                Funded Research
+                <span className="text-xs font-bold px-3 py-1 bg-slate-100 text-slate-500 rounded-full align-middle">
+                  {fundedProjects.length}
+                </span>
+              </h2>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div className="max-w-6xl mx-auto px-12 py-6">
-        {sortedData.length === 0 ? (
-          <div className="py-20 text-center text-slate-400 font-light">
-            No projects found
+          <div className="grid grid-cols-1 gap-6">
+            {fundedProjects.length === 0 ? (
+              <div className="text-center py-24 bg-white rounded-3xl border border-slate-100 shadow-sm">
+                <p className="text-slate-600 font-bold text-xl md:text-2xl tracking-tight">No funded projects yet</p>
+                <p className="text-slate-500 mt-2 font-medium">Check back later for updates.</p>
+              </div>
+            ) : (
+              <>
+                {fundedProjects.slice(0, visibleFunded).map((project) => (
+                  <ProjectCard key={project.id} project={project} />
+                ))}
+                
+                {visibleFunded < fundedProjects.length && (
+                  <div className="mt-10 flex justify-center">
+                    <button 
+                      onClick={() => setVisibleFunded(prev => prev + 6)}
+                      className="group relative inline-flex items-center justify-center gap-3 px-10 py-4 bg-white text-slate-900 font-bold rounded-full overflow-hidden transition-all duration-300 border-2 border-slate-200 hover:border-transparent hover:shadow-2xl hover:shadow-teal-900/20 hover:-translate-y-1"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-teal-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <span className="relative z-10 flex items-center gap-2 group-hover:text-white transition-colors duration-300">
+                        Load More
+                        <ChevronDown className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" />
+                      </span>
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
-        ) : (
-          <div>
-            {sortedData.map((project, index) => (
-              <ProjectCard key={project.id} project={project} index={index} />
-            ))}
+        </section>
+
+        {/* SECTION: NON-FUNDED RESEARCH */}
+        <section data-anim="non-funded-section">
+          <div className="flex items-end justify-between mb-8 pb-4 border-b border-slate-200">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
+                Non-Funded Research
+                <span className="text-xs font-bold px-3 py-1 bg-slate-100 text-slate-500 rounded-full align-middle">
+                  {nonFundedProjects.length}
+                </span>
+              </h2>
+            </div>
           </div>
-        )}
-      </div>
+
+          <div className="grid grid-cols-1 gap-6">
+            {nonFundedProjects.length === 0 ? (
+              <div className="text-center py-24 bg-white rounded-3xl border border-slate-100 shadow-sm">
+                <p className="text-slate-600 font-bold text-xl md:text-2xl tracking-tight">No non-funded projects yet</p>
+                <p className="text-slate-500 mt-2 font-medium">Check back later for updates.</p>
+              </div>
+            ) : (
+              <>
+                {nonFundedProjects.slice(0, visibleNonFunded).map((project) => (
+                  <ProjectCard key={project.id} project={project} />
+                ))}
+
+                {visibleNonFunded < nonFundedProjects.length && (
+                  <div className="mt-10 flex justify-center">
+                    <button 
+                      onClick={() => setVisibleNonFunded(prev => prev + 6)}
+                      className="group relative inline-flex items-center justify-center gap-3 px-10 py-4 bg-white text-slate-900 font-bold rounded-full overflow-hidden transition-all duration-300 border-2 border-slate-200 hover:border-transparent hover:shadow-2xl hover:shadow-teal-900/20 hover:-translate-y-1"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-teal-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <span className="relative z-10 flex items-center gap-2 group-hover:text-white transition-colors duration-300">
+                        Load More
+                        <ChevronDown className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" />
+                      </span>
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </section>
+
+      </main>
     </div>
   )
 }
