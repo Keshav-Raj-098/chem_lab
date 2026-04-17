@@ -116,7 +116,7 @@ const Navbar = () => {
     <nav className={`navbar ${scrolled || !isHome ? 'scrolled' : ''}`}>
       <div className="navbar-inner">
         <Link href="/" className="navbar-logo">
-          CARBON Lab
+          Chem Lab
         </Link>
 
         <ul className={`navbar-links ${mobileOpen ? 'mobile-open' : ''}`}>

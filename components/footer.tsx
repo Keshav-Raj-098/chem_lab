@@ -9,7 +9,7 @@ const Footer = () => {
       <div className="footer-grid">
         {/* Col 1: Brand */}
         <div>
-          <div className="footer-logo">CARBON Lab</div>
+          <div className="footer-logo">CHEM Lab</div>
           <p className="footer-tagline">Catalysis &amp; Reaction Engineering &middot; IIT Delhi</p>
           <p className="footer-desc">Please follow our social media pages for more updates.</p>
           <div className="footer-socials">
@@ -43,7 +43,7 @@ const Footer = () => {
           </div>
           <div className="footer-contact-item">
             <Mail className="footer-contact-icon" size={16} />
-            <span className="footer-contact-text">carbonlabiith@gmail.com</span>
+            <span className="footer-contact-text">chemlabiitd@gmail.com</span>
           </div>
           <div className="footer-contact-item">
             <MapPin className="footer-contact-icon" size={16} />
