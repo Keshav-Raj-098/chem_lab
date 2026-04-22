@@ -1,7 +1,7 @@
 import { AwardType } from "@/lib/generated/prisma/enums";
 import { fetchAwardsAction } from "@/lib/load_data/loadAwards";
 import Link from "next/link";
-import { ChevronRight, Award, User, Users, Sparkles, Trophy, Star } from "lucide-react";
+import { ChevronRight, Award, User, Users, Sparkles } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -95,45 +95,27 @@ const AwardsPage = async ({ searchParams }: PageProps) => {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {awards.map((award, index) => (
-              <div key={award.id} className="relative group h-full flex flex-col">
-                {/* Content Card */}
-                <div className="flex-1 bg-white rounded-3xl p-6 shadow-sm border border-slate-200/75 hover:shadow-xl hover:border-teal-200/75 transition-all duration-500 hover:-translate-y-1 relative overflow-hidden flex flex-col">
-                  {/* Subtle Number Watermark */}
-                  <div className="absolute -bottom-4 -right-2 text-[10rem] font-black text-slate-50/50 -z-10 select-none group-hover:text-teal-50/30 transition-colors duration-500 leading-none">
-                    {String(index + 1).padStart(2, '0')}
-                  </div>
-
-                  <div className="flex flex-col gap-6 relative z-10 flex-1">
-                    <div className="flex items-start justify-between">
-                      {/* Icon Container */}
-                      <div className="flex-shrink-0 flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200/50 text-slate-400 group-hover:text-teal-600 group-hover:from-teal-50 group-hover:to-emerald-50 group-hover:border-teal-200/50 transform group-hover:rotate-6 transition-all duration-500 shadow-sm">
-                        <Trophy className="w-7 h-7" />
-                      </div>
-                      
-                      {/* Date & Type Badges */}
-                      <div className="flex flex-col items-end gap-2">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-slate-900 text-white shadow-sm">
-                          <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                          {new Date(award.createdAt).getFullYear()}
-                        </span>
-                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm border ${
-                          award.type === AwardType.GROUP_LEADER
-                            ? "bg-blue-50 text-blue-700 border-blue-200/50"
-                            : "bg-teal-50 text-teal-700 border-teal-200/50"
-                        }`}>
-                          {award.type === AwardType.GROUP_LEADER ? "Group Leader" : "Group Member"}
-                        </span>
-                      </div>
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white rounded-3xl border border-slate-200/75 shadow-sm overflow-hidden divide-y divide-slate-100">
+              {awards.map((award) => (
+                <div key={award.id} className="group relative px-6 md:px-10 py-6 hover:bg-gradient-to-r hover:from-teal-50/40 hover:to-transparent transition-all duration-300">
+                  <div className="flex items-start gap-5">
+                    {/* Left: Type */}
+                    <div className="flex-shrink-0 flex flex-col items-center pt-0.5">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest border whitespace-nowrap ${
+                        award.type === AwardType.GROUP_LEADER
+                          ? "bg-blue-50 text-blue-700 border-blue-200/50"
+                          : "bg-teal-50 text-teal-700 border-teal-200/50"
+                      }`}>
+                        {award.type === AwardType.GROUP_LEADER ? "Leader" : "Member"}
+                      </span>
                     </div>
-                    
-                    {/* Details */}
-                    <div className="flex-1 flex flex-col">
-                      {/* CMS Content */}
+
+                    {/* Right: Award Content */}
+                    <div className="flex-1 min-w-0">
                       <div 
                         className="prose prose-slate text-sm md:text-base max-w-none text-slate-700 leading-relaxed font-medium 
-                                   prose-p:my-2 prose-p:last:mb-0 prose-p:first:mt-0
+                                   prose-p:my-1 prose-p:last:mb-0 prose-p:first:mt-0
                                    prose-strong:text-slate-900 prose-strong:font-bold 
                                    prose-a:text-teal-600 hover:prose-a:text-teal-700 prose-a:font-semibold prose-a:decoration-teal-300 prose-a:underline-offset-4
                                    group-hover:text-slate-800 transition-colors duration-300" 
@@ -141,9 +123,12 @@ const AwardsPage = async ({ searchParams }: PageProps) => {
                       />
                     </div>
                   </div>
+
+                  {/* Hover accent line */}
+                  <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-teal-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-r-full" />
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 
