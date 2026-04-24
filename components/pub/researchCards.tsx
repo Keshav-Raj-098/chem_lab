@@ -28,7 +28,7 @@ export const ResearchCardItem = ({
           {heroTitle.includes(source) ? heroTitle.split(source).map((part, i) => (
             <React.Fragment key={i}>
               {part}
-              {i === 0 && <span className="teal">{source}</span>}
+              {i === 0 && <span className="accent">{source}</span>}
             </React.Fragment>
           )) : heroTitle}
         </h3>

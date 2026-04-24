@@ -10,6 +10,7 @@ import { LoginSchema } from "@/types/types"
 import { Card, CardTitle, CardContent, CardFooter } from '@/components/ui/card'
 import { ZodError } from 'zod'
 import Link from 'next/link'
+import { signin } from './auth'
 
 export default function Auth() {
   const router = useRouter();
@@ -23,14 +24,15 @@ export default function Auth() {
     try {
       const body = LoginSchema.parse({ username, password });
 
-      const response = await axiosInstance.post('/auth/login', body);
+      const response = await signin({ username, password });
 
-      const res_data = response.data;
-
-      localStorage.setItem('token', res_data.token);
-
-      ShowToast("Login successful!", "success");
-      router.push('/admin/dashboard');
+      if(response.status){
+        localStorage.setItem('token', response.token!);
+        ShowToast("Login successful!", "success");
+        router.push('/admin/dashboard');
+      }else{
+        ShowToast(response.message, "error");
+      }
 
     } catch (error: unknown) {
       if (error instanceof ZodError) {

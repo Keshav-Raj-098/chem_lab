@@ -12,47 +12,57 @@ type SubNavbarItem = {
 
 type NavbarItem = {
   name: string
-  link: string
+  link?: string
   subNavbarItems?: SubNavbarItem[]
 }
 
 const navbarItems: NavbarItem[] = [
   { name: "Home", link: "/" },
   {
-    name: "Research", link: "/research",
-    // subNavbarItems: [
-    //   { name: "Research Areas", link: "/research/areas" },
-    //   { name: "Research Facilities", link: "/research/facilities" },
-    //   {
-    //     name: "Research Projects", link: "/research/projects",
-    //     subNavbarItems: [
-    //       { name: "Projects Done", link: "/research/projects/done" },
-    //       { name: "Sponsored Projects", link: "/research/projects/sponsored" },
-    //       { name: "Future Projects", link: "/research/projects/future" },
-    //     ]
-    //   },
-    // ]
+    name: "Research",
+    subNavbarItems: [
+      { name: "Research Areas", link: "/research/areas" },
+      { name: "Research Facilities", link: "/research/facilities" },
+      { name: "Research Projects", link: "/research/projects" },
+    ]
   },
   {
-    name: "People", link: "/people",
-    // subNavbarItems: [
-    //   { name: "Group", link: "/people/group" },
-    //   { name: "Collaborators", link: "/people/collaborators" },
-    // ]
+    name: "People",
+    subNavbarItems: [
+      { name: "Team", link: "/people/team" },
+      { name: "Alumni", link: "/people/alumni" },
+    ]
   },
   {
-    name: "Awards", link: "/awards",
-    // subNavbarItems: [
-    //   { name: "Group Leader", link: "/awards/groupLeader" },
-    //   { name: "Group Members", link: "/awards/group-members" },
-    // ]
+    name: "Awards",
+    subNavbarItems: [
+      { name: "Group Leader", link: "/awards/group-leader" },
+      { name: "Group Members", link: "/awards/group-members" },
+    ]
   },
   { name: "Publications", link: "/publications" },
-  { name: "News", link: "/news" },
+  {
+    name: "News",
+    subNavbarItems: [
+      { name: "Vacancies", link: "/news/vaccancy" },
+      { name: "Events", link: "/news/events" },
+    ]
+  },
   { name: "Outreach", link: "/outreach" },
+  { name: "Gallery", link: "/gallery" }
 ]
 
-const NavDropdown = ({ item, pathname }: { item: NavbarItem; pathname: string }) => {
+const NavDropdown = ({
+  item,
+  pathname,
+  onNavigate,
+  isMobile,
+}: {
+  item: NavbarItem
+  pathname: string
+  onNavigate: () => void
+  isMobile: boolean
+}) => {
   const [open, setOpen] = useState(false)
 
   const allLinks = item.subNavbarItems?.flatMap(sub =>
@@ -60,38 +70,53 @@ const NavDropdown = ({ item, pathname }: { item: NavbarItem; pathname: string })
   ) || []
   const isActive = allLinks.some(l => pathname.startsWith(l))
 
+  // Reset open state when switching between mobile/desktop layouts.
+  useEffect(() => { setOpen(false) }, [isMobile])
+
   return (
     <li
       className="nav-dropdown"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={isMobile ? undefined : () => setOpen(true)}
+      onMouseLeave={isMobile ? undefined : () => setOpen(false)}
     >
-      <button className="nav-dropdown-trigger" aria-expanded={open}>
-        <span className={isActive ? 'active' : ''} style={{ color: isActive ? 'white' : undefined }}>
-          {item.name}
-        </span>
-        <ChevronDown size={14} style={{ opacity: 0.6 }} />
+      <button
+        type="button"
+        className={`nav-dropdown-trigger ${isActive ? 'active' : ''}`}
+        aria-expanded={open}
+        aria-haspopup="true"
+        onClick={(e) => {
+          e.preventDefault()
+          setOpen(o => !o)
+        }}
+      >
+        <span>{item.name}</span>
+        <ChevronDown size={13} className={`nav-dropdown-chevron ${open ? 'open' : ''}`} />
       </button>
       {open && (
-        <div className="nav-dropdown-content" style={{ opacity: 1, pointerEvents: 'auto', transform: 'translateX(-50%) translateY(0)' }}>
-          {item.subNavbarItems?.map((sub, i) => (
-            <React.Fragment key={i}>
-              <Link href={sub.link} className="nav-dropdown-item" onClick={() => setOpen(false)}>
-                {sub.name}
-              </Link>
-              {sub.subNavbarItems?.map((child, j) => (
+        <div className="nav-dropdown-content">
+          <div className="nav-dropdown-inner">
+            {item.subNavbarItems?.map((sub, i) => (
+              <React.Fragment key={i}>
                 <Link
-                  key={j}
-                  href={child.link}
+                  href={sub.link}
                   className="nav-dropdown-item"
-                  style={{ paddingLeft: 28, fontSize: '0.8125rem' }}
-                  onClick={() => setOpen(false)}
+                  onClick={() => { setOpen(false); onNavigate() }}
                 >
-                  {child.name}
+                  {sub.name}
                 </Link>
-              ))}
-            </React.Fragment>
-          ))}
+                {sub.subNavbarItems?.map((child, j) => (
+                  <Link
+                    key={j}
+                    href={child.link}
+                    className="nav-dropdown-item sub-item"
+                    onClick={() => { setOpen(false); onNavigate() }}
+                  >
+                    {child.name}
+                  </Link>
+                ))}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
       )}
     </li>
@@ -101,34 +126,55 @@ const NavDropdown = ({ item, pathname }: { item: NavbarItem; pathname: string })
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const pathname = usePathname()
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 80)
+    const onScroll = () => setScrolled(window.scrollY > 8)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const isHome = pathname === '/'
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 1024px)')
+    const update = () => setIsMobile(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+
+  // Close mobile menu when viewport grows back to desktop.
+  useEffect(() => { if (!isMobile) setMobileOpen(false) }, [isMobile])
+
+  // Close mobile menu on route change.
+  useEffect(() => { setMobileOpen(false) }, [pathname])
+
+  const closeMobile = () => setMobileOpen(false)
 
   return (
-    <nav className={`navbar ${scrolled || !isHome ? 'scrolled' : ''}`}>
+    <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <div className="navbar-inner">
-        <Link href="/" className="navbar-logo">
-          Chem Lab
+        <Link href="/" className="navbar-logo" onClick={closeMobile}>
+          Chemical Research Lab
         </Link>
 
         <ul className={`navbar-links ${mobileOpen ? 'mobile-open' : ''}`}>
           {navbarItems.map((item, index) =>
             item.subNavbarItems ? (
-              <NavDropdown key={index} item={item} pathname={pathname} />
+              <NavDropdown
+                key={index}
+                item={item}
+                pathname={pathname}
+                onNavigate={closeMobile}
+                isMobile={isMobile}
+              />
             ) : (
               <li key={index}>
                 <Link
-                  href={item.link}
+                  href={item.link as string}
                   className={`nav-link ${pathname === item.link ? 'active' : ''}`}
-                  onClick={() => setMobileOpen(false)}
+                  onClick={closeMobile}
                 >
                   {item.name}
                 </Link>
@@ -137,16 +183,18 @@ const Navbar = () => {
           )}
         </ul>
 
-        <Link href="/contact" className="nav-cta">
-          Contact Us
+        <Link href="/contact" className="nav-cta" onClick={closeMobile}>
+          Contact
         </Link>
 
         <button
+          type="button"
           className="nav-mobile-toggle"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
+          aria-expanded={mobileOpen}
         >
-          {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
     </nav>

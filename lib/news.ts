@@ -3,32 +3,51 @@
 import { prisma } from '@/lib/prisma'
 import { unstable_cache } from 'next/cache'
 
-export const fetchNewsAction = unstable_cache(
-  async (pageNumber: number, pageSize: number = 20) => {
-    try {
-      const newsData = await prisma.newsAndAnnouncements.findMany({
-        skip: (pageNumber - 1) * pageSize,
-        take: pageSize,
-        orderBy: {
-          createdAt: 'desc'
+import { NewsAndAnnouncementsType } from './generated/prisma/client'
+
+export async function fetchNewsAction({
+  type,
+  page = 1,
+  pageSize = 10,
+}: {
+  type?: NewsAndAnnouncementsType
+  page?: number
+  pageSize?: number
+}) {
+  return unstable_cache(
+    async () => {
+      try {
+        const skip = (page - 1) * pageSize
+        const where = type ? { type } : {}
+
+        const [news, total] = await Promise.all([
+          prisma.newsAndAnnouncements.findMany({
+            where,
+            orderBy: { createdAt: 'desc' },
+            skip,
+            take: pageSize,
+          }),
+          prisma.newsAndAnnouncements.count({ where }),
+        ])
+
+        return {
+          success: true,
+          data: news,
+          total,
+          hasMore: total > skip + news.length,
         }
-      })
-      
-      return {
-        success: true,
-        data: newsData,
-        hasMore: newsData.length === pageSize
+      } catch (error) {
+        console.error('Error fetching news:', error)
+        return {
+          success: false,
+          data: [],
+          total: 0,
+          hasMore: false,
+          error: 'Failed to fetch news',
+        }
       }
-    } catch (error) {
-      console.error('Error fetching news:', error)
-      return {
-        success: false,
-        data: [],
-        hasMore: false,
-        error: 'Failed to fetch news'
-      }
-    }
-  },
-  ['public-news'],
-  { revalidate: 3600, tags: ['news'] }
-);
+    },
+    [`public-news-${type ?? 'all'}-${page}-${pageSize}`],
+    { revalidate: 3600, tags: ['news'] }
+  )()
+}

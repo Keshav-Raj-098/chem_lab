@@ -1,24 +1,20 @@
 import type { Metadata } from "next";
-import { Inter, Instrument_Serif ,DM_Serif_Display} from "next/font/google";
+import { Inter, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 import { Toaster } from '@/components/ui/sonner';
 
 const inter = Inter({
   variable: "--font-inter",
+  weight: ["300", "400", "500", "600", "700"],
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const sourceSerif = Source_Serif_4({
+  variable: "--font-serif",
   weight: ["300", "400", "500", "600"],
   subsets: ["latin"],
-});
-
-const instrumentSerif = Instrument_Serif({
-  variable: "--font-serif",
-  weight: "400",
-  subsets: ["latin"],
-});
-
-const dmSerif = DM_Serif_Display({
-  variable: "--font-dm-serif",
-  subsets: ["latin"],
-  weight: "400",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -34,7 +30,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${instrumentSerif.variable} ${dmSerif.variable} h-full antialiased`}
+      className={`${inter.variable} ${sourceSerif.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
         {children}

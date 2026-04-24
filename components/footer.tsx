@@ -54,9 +54,23 @@ const Footer = () => {
         {/* Col 4: Location */}
         <div>
           <h3 className="footer-col-heading">Location</h3>
-          <div className="footer-map-placeholder">
-            IIT Delhi, Hauz Khas
+          <div className="footer-map">
+            <iframe
+              src="https://www.google.com/maps?q=Indian+Institute+of+Technology+Delhi,+Hauz+Khas,+New+Delhi&z=15&output=embed"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Map showing IIT Delhi, Hauz Khas"
+              aria-label="Interactive map of IIT Delhi, Hauz Khas"
+            />
           </div>
+          <a
+            href="https://www.google.com/maps/dir/?api=1&destination=Indian+Institute+of+Technology+Delhi,+Hauz+Khas,+New+Delhi"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="footer-map-link"
+          >
+            Get directions &rarr;
+          </a>
         </div>
       </div>
 

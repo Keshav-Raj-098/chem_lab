@@ -35,4 +35,15 @@ export async function uploadToCloudinary(file: File,folder:string): Promise<stri
     console.error("Cloudinary upload error:", error);
     throw new Error("Failed to upload image");
   }
+}
+
+export async function deleteFromCloudinary(publicIdWithFormat: string): Promise<void> {
+  try {
+    // Cloudinary destroy expects public_id without format
+    const publicId = publicIdWithFormat.split(".")[0];
+    await cloudinary.uploader.destroy(publicId);
+  } catch (error) {
+    console.error("Cloudinary delete error:", error);
+    // We don't throw here to avoid failing the whole process if image deletion fails
+  }
 } 

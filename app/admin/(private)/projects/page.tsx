@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react'
-import AdminProjectsTable from '@/components/admin/projects/AdminProjectsTable'
+import AdminProjectsTable from './_components/AdminProjectsTable'
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';

@@ -1,3 +1,5 @@
+// This file can be used to upload images to Cloudinary in a batch process.  
+
 
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';

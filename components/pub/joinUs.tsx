@@ -6,14 +6,15 @@ const JoinUs = () => {
       <div className="cta-inner">
         <div className="cta-eyebrow" data-anim="fade-up">Get Involved</div>
         <h2 className="cta-heading" data-anim="cta-heading">
-          Want to be a partner or collaborate?
+          Interested in collaborating or joining the lab?
         </h2>
         <p className="cta-subtitle" data-anim="fade-up">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Rem fugit totam et dolores corrupti earum fuga, sint officiis ratione placeat?
+          We welcome enquiries from prospective PhD students, postdocs, and research partners.
+          Reach out to discuss opportunities, collaborations, or visiting positions.
         </p>
         <div data-anim="fade-up">
           <Link href="/contact" className="cta-button">
-            Join Us
+            Contact the Lab
           </Link>
         </div>
       </div>

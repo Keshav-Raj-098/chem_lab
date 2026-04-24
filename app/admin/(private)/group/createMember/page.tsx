@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import GroupMemberForm, { GroupMemberFormData } from "@/components/admin/group/GroupMemberForm";
+import GroupMemberForm, { GroupMemberFormData } from "../_components/GroupMemberForm";
 
 
 export default function CreateMemberPage() {

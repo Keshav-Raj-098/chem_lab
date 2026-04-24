@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react'
-import AdminEquipmentTable from '@/components/admin/equipments/AdminEquipmentTable'
-import CreateEquipment from '@/components/admin/equipments/createEquipment'
+import AdminEquipmentTable from './_components/AdminEquipmentTable'
+import CreateEquipment from './_components/createEquipment'
 
 const page = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);

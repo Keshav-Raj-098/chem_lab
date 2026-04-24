@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import AdminGroupTable from "@/components/admin/group/AdminGroupTable";
+import AdminGroupTable from "./_components/AdminGroupTable";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";

@@ -24,8 +24,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         const { id } = await params;
         const body = await req.json();
 
-        if (!body || !body.title || !body.newsBody) {
-            return NextResponse.json({ error: "Title and body are required" }, { status: 400 });
+        if (!body || !body.title || !body.newsBody || !body.type) {
+            return NextResponse.json({ error: "Title, body, and type are required" }, { status: 400 });
         }
 
         const updatedNews = await prisma.newsAndAnnouncements.update({
@@ -33,6 +33,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             data: {
                 title: body.title,
                 body: body.newsBody,
+                type: body.type,
             },
         });
 

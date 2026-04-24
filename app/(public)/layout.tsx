@@ -1,5 +1,6 @@
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
+import { Analytics } from "@vercel/analytics/next"
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -9,7 +10,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       <main className="flex-1">
         {children}
       </main>
-
+      <Analytics/>
       <Footer />
     </div>
   )

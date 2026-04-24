@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/sidebar"
 import { MdDashboard } from "react-icons/md";
 import { IoSettingsSharp } from "react-icons/io5";
-import { LogOut, type LucideIcon, Briefcase, Inbox, BeakerIcon, Award, BookOpen,Newspaper,User2Icon } from "lucide-react"
+import { LogOut, type LucideIcon, Briefcase, Inbox, BeakerIcon, Award,Image,BookOpen,Newspaper,User2Icon } from "lucide-react"
 import type { IconType } from "react-icons/lib";
 import { useEffect } from "react";
 import Logo from '@/assets/image.png'
@@ -52,6 +52,12 @@ export function AppSidebar({ setPageTitle }: { setPageTitle: (title: string) => 
             pageTitle: "Dashboard"
         },
         {
+            name: "Research Areas",
+            icon: Briefcase,
+            link: "/admin/research-areas",
+            pageTitle: "Manage your Projects",
+        },
+        {
             name: "Projects",
             icon: Briefcase,
             link: "/admin/projects",
@@ -61,6 +67,12 @@ export function AppSidebar({ setPageTitle }: { setPageTitle: (title: string) => 
             name: "Group Members",
             icon: User2Icon,
             link: "/admin/group",
+            pageTitle: "Manage your Projects",
+        },
+        {
+            name: "Alumni",
+            icon: User2Icon,
+            link: "/admin/alumni",
             pageTitle: "Manage your Projects",
         },
         {
@@ -88,10 +100,10 @@ export function AppSidebar({ setPageTitle }: { setPageTitle: (title: string) => 
             pageTitle: "Manage your Publications"
         },
         {
-            name: "Contact Requests",
-            icon: Inbox,
-            link: "/admin/inbox",
-            pageTitle: "Manage your Publications"
+            name: "Gallery",
+            icon: Image,
+            link: "/admin/gallery",
+            pageTitle: "Manage your Gallery"
         },
     ]
 

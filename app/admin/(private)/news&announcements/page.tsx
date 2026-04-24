@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react'
-import AdminNewsTable from '@/components/admin/news&announcements/AdminNewsTable'
-import CreateNews from '@/components/admin/news&announcements/createNews'
+import AdminNewsTable from './_components/AdminNewsTable'
+import CreateNews from './_components/createNews'
 
 const page = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);

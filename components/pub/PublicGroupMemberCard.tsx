@@ -1,6 +1,6 @@
 import Image from "next/image";
-import { Mail, GraduationCap, Phone, User2 } from "lucide-react";
 import Link from "next/link";
+import { Mail, Phone, ExternalLink, User } from "lucide-react";
 
 interface GroupMember {
   id: string;
@@ -18,112 +18,103 @@ const getFullImageUrl = (url: string | null) => {
   if (!url) return null;
   if (url.startsWith("http") || url.startsWith("/")) return url;
   const publicUrl = process.env.NEXT_PUBLIC_CLOUDINARY_URL;
-  return publicUrl ? `${publicUrl}/${url}` : `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/${url}`;
+  return publicUrl
+    ? `${publicUrl}/${url}`
+    : `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/${url}`;
 };
+
+const getInitials = (name: string) =>
+  name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("");
 
 const PublicGroupMemberCard = ({ member }: { member: GroupMember }) => {
   const profileImgUrl = getFullImageUrl(member.profileImgUrl);
 
   return (
-    <div 
-      className="group relative bg-white rounded-2xl p-6 transition-all duration-500 border border-slate-100 flex flex-col items-center text-center h-full hover:-translate-y-2 overflow-hidden"
-      style={{
-        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow = "0 20px 25px -5px rgba(15, 37, 87, 0.1), 0 10px 10px -5px rgba(15, 37, 87, 0.04)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)";
-      }}
-    >
-      {/* Subtle Background Accent */}
-      <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-bl-full -z-10 transition-transform duration-700 group-hover:scale-150" />
-      
-      {/* Image Container - Professional & Compact */}
-      <div className="relative mb-5 pt-1">
-        <div 
-          className="relative w-24 h-24 rounded-2xl p-1 bg-white ring-1 ring-slate-100 transition-all duration-700 group-hover:ring-[#0d9488]/30 group-hover:-rotate-2"
-          style={{ boxShadow: "0 2px 4px rgba(0,0,0,0.05)" }}
-        >
-          <div className="relative w-full h-full rounded-xl overflow-hidden bg-slate-50">
-            {profileImgUrl ? (
-              <Image
-                src={profileImgUrl}
-                alt={member.name}
-                fill
-                sizes="96px"
-                loading="lazy"
-                className="object-cover transition-all duration-1000 group-hover:scale-110"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-slate-300 bg-slate-50">
-                <GraduationCap className="w-10 h-10" />
-              </div>
-            )}
+    <article className="group flex flex-col h-full bg-white border border-slate-200/70 rounded-sm overflow-hidden transition-all duration-200 hover:border-slate-300 hover:shadow-[0_8px_24px_-8px_rgba(15,37,87,0.12)]">
+      {/* Portrait */}
+      <div className="relative aspect-4/5 bg-slate-100 overflow-hidden">
+        {profileImgUrl ? (
+          <Image
+            src={profileImgUrl}
+            alt={member.name}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            loading="lazy"
+            className="object-cover grayscale-15 group-hover:grayscale-0 transition-[filter,transform] duration-500 group-hover:scale-[1.02]"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-slate-100">
+            <span className="font-serif text-5xl text-slate-300 tracking-tight">
+              {getInitials(member.name) || <User className="w-12 h-12" />}
+            </span>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col w-full">
-        <div className="mb-4">
-          <h3 className="text-lg font-bold text-[#0f2557] mb-1 group-hover:text-[#0d9488] transition-colors leading-tight">
-            {member.name}
-          </h3>
-          {member.designation && (
-            <p className="text-[13px] font-medium text-slate-500/90 italic">
-              {member.designation}
-            </p>
-          )}
-        </div>
+      <div className="flex flex-col flex-1 p-5 md:p-6">
+        <h3 className="font-serif text-lg md:text-[1.25rem] leading-snug text-slate-900 tracking-tight">
+          {member.name}
+        </h3>
+        {member.designation && (
+          <p className="mt-1 text-sm text-slate-500 italic leading-snug">
+            {member.designation}
+          </p>
+        )}
 
-        {/* Expertise - Clean & Minimal */}
         {member.researchAreas && (
-          <div className="mb-5 flex-1 px-2">
-            <div className="text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-2">Research Area</div>
-            <div 
-              className="text-sm text-slate-600 line-clamp-2 prose prose-sm max-w-none leading-relaxed italic"
-              dangerouslySetInnerHTML={{ __html: member.researchAreas }} 
+          <div className="mt-4 pt-4 border-t border-slate-100">
+            <div className="text-[10px] font-semibold tracking-[0.16em] uppercase text-amber-700 mb-2">
+              Research
+            </div>
+            <div
+              className="prose prose-sm max-w-none text-slate-600 leading-relaxed line-clamp-3 prose-p:my-0 prose-a:text-amber-700 prose-strong:text-slate-900"
+              dangerouslySetInnerHTML={{ __html: member.researchAreas }}
             />
           </div>
         )}
 
-        {/* Contact & Category Row */}
-        <div className="w-full space-y-4 pt-4 border-t border-slate-50">
-          <div className="grid grid-cols-2 gap-2 text-left">
-             <div className="px-2 py-1.5 bg-slate-50/50 rounded-lg text-slate-600 border border-slate-100 flex items-center gap-2 overflow-hidden">
-                <Mail className="w-3 h-3 text-[#0d9488] shrink-0" />
-                <span className="text-[9px] font-medium truncate" title={member.email}>{member.email}</span>
-             </div>
-             {member.phoneNumber && (
-               <div className="px-2 py-1.5 bg-slate-50/50 rounded-lg text-slate-600 border border-slate-100 flex items-center gap-2 overflow-hidden">
-                  <Phone className="w-3 h-3 text-[#0d9488] shrink-0" />
-                  <span className="text-[9px] font-medium truncate" title={member.phoneNumber}>{member.phoneNumber}</span>
-               </div>
-             )}
-          </div>
-
-          <div className="flex items-center justify-between gap-3">
-            <span className="px-3 py-1.5 bg-teal-50 text-[#0d9488] rounded-full text-[10px] font-bold uppercase tracking-wider border border-teal-100 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#0d9488] animate-pulse" />
-                {member.category.replace("_", " ")}
-            </span>
-
-            {member.profileLink && (
-              <Link
-                href={member.profileLink}
-                target="_blank"
-                className="flex items-center justify-center p-2.5 bg-[#0f2557] hover:bg-[#0d9488] text-white rounded-xl transition-all duration-300 group/btn shadow-md hover:shadow-teal-100"
-                title="View Full Profile"
-              >
-                <User2 className="w-4 h-4" />
-              </Link>
-            )}
-          </div>
+        {/* Footer: contact links */}
+        <div className="mt-auto pt-5 flex items-center gap-1 text-slate-400">
+          {member.email && (
+            <Link
+              href={`mailto:${member.email}`}
+              aria-label={`Email ${member.name}`}
+              title={member.email}
+              className="p-2 -ml-2 rounded-sm hover:text-slate-900 hover:bg-slate-50 transition-colors"
+            >
+              <Mail className="w-4 h-4" strokeWidth={1.5} />
+            </Link>
+          )}
+          {member.phoneNumber && (
+            <Link
+              href={`tel:${member.phoneNumber}`}
+              aria-label={`Call ${member.name}`}
+              title={member.phoneNumber}
+              className="p-2 rounded-sm hover:text-slate-900 hover:bg-slate-50 transition-colors"
+            >
+              <Phone className="w-4 h-4" strokeWidth={1.5} />
+            </Link>
+          )}
+          {member.profileLink && (
+            <Link
+              href={member.profileLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`View ${member.name}'s full profile`}
+              className="p-2 rounded-sm hover:text-slate-900 hover:bg-slate-50 transition-colors"
+            >
+              <ExternalLink className="w-4 h-4" strokeWidth={1.5} />
+            </Link>
+          )}
         </div>
       </div>
-    </div>
+    </article>
   );
 };
 

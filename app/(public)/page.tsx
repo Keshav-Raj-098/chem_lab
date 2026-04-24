@@ -8,7 +8,6 @@ import HomeAnimations from "@/components/pub/homeAnimations";
 export default function Home() {
   return (
     <div className="relative">
-      {/* GSAP animations — client component targeting DOM via data attributes */}
       <HomeAnimations />
 
       {/* ═══ HERO ═══ */}
@@ -16,72 +15,30 @@ export default function Home() {
         <div className="hero-bg" style={{ backgroundImage: 'url("/hero2.jpg")' }} />
         <div className="hero-overlay" />
 
-        {/* Decorative molecular SVG */}
-        <div className="hero-molecular-svg" data-anim="hero-molecular">
-          <svg width="500" height="500" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <g stroke="rgba(255,255,255,0.3)" strokeWidth="0.5">
-              <polygon points="250,120 290,143 290,187 250,210 210,187 210,143" />
-              <polygon points="290,143 330,166 330,210 290,233 250,210 250,166" />
-              <polygon points="250,210 290,233 290,277 250,300 210,277 210,233" />
-              <polygon points="210,143 250,166 250,210 210,233 170,210 170,166" />
-              <polygon points="330,166 370,189 370,233 330,256 290,233 290,189" />
-              <polygon points="170,166 210,189 210,233 170,256 130,233 130,189" />
-              <polygon points="290,277 330,300 330,344 290,367 250,344 250,300" />
-              <polygon points="210,277 250,300 250,344 210,367 170,344 170,300" />
-              <polygon points="370,233 410,256 410,300 370,323 330,300 330,256" />
-              <polygon points="130,233 170,256 170,300 130,323 90,300 90,256" />
-              <polygon points="330,344 370,367 370,411 330,434 290,411 290,367" />
-              <polygon points="170,344 210,367 210,411 170,434 130,411 130,367" />
-            </g>
-            <g fill="rgba(255,255,255,0.2)">
-              <circle cx="250" cy="120" r="3" /><circle cx="290" cy="143" r="3" />
-              <circle cx="290" cy="187" r="3" /><circle cx="250" cy="210" r="3" />
-              <circle cx="210" cy="187" r="3" /><circle cx="210" cy="143" r="3" />
-              <circle cx="330" cy="166" r="3" /><circle cx="330" cy="210" r="3" />
-              <circle cx="290" cy="233" r="3" /><circle cx="250" cy="166" r="3" />
-              <circle cx="170" cy="166" r="3" /><circle cx="170" cy="210" r="3" />
-              <circle cx="210" cy="233" r="3" /><circle cx="290" cy="277" r="3" />
-              <circle cx="250" cy="300" r="3" /><circle cx="210" cy="277" r="3" />
-              <circle cx="370" cy="189" r="2.5" /><circle cx="370" cy="233" r="2.5" />
-              <circle cx="330" cy="256" r="2.5" /><circle cx="130" cy="189" r="2.5" />
-              <circle cx="130" cy="233" r="2.5" /><circle cx="170" cy="256" r="2.5" />
-              <circle cx="330" cy="300" r="2.5" /><circle cx="330" cy="344" r="2.5" />
-              <circle cx="290" cy="367" r="2.5" /><circle cx="250" cy="344" r="2.5" />
-              <circle cx="210" cy="367" r="2.5" /><circle cx="170" cy="344" r="2.5" />
-              <circle cx="170" cy="300" r="2.5" />
-              <circle cx="410" cy="256" r="2" /><circle cx="410" cy="300" r="2" />
-              <circle cx="370" cy="323" r="2" /><circle cx="90" cy="256" r="2" />
-              <circle cx="90" cy="300" r="2" /><circle cx="130" cy="323" r="2" />
-              <circle cx="370" cy="367" r="2" /><circle cx="370" cy="411" r="2" />
-              <circle cx="330" cy="434" r="2" /><circle cx="290" cy="411" r="2" />
-              <circle cx="210" cy="411" r="2" /><circle cx="170" cy="434" r="2" />
-              <circle cx="130" cy="411" r="2" /><circle cx="130" cy="367" r="2" />
-            </g>
-          </svg>
-        </div>
-
         <div className="hero-content">
           <div className="hero-badge" data-anim="hero-badge">
-            <span className="hero-badge-dot" />
-            <span className="hero-badge-text">IIT Delhi &middot; Chemical Engineering</span>
+            <span className="hero-badge-label">Department of Chemical Engineering &middot; IIT Delhi</span>
           </div>
 
           <h1 className="hero-title" data-anim="hero-title">
-            Chemical Research Lab<br />
-            <span className="hero-title-accent">IIT Delhi</span>
+            Advancing chemical sciences
+            <span className="hero-title-accent">through rigorous research.</span>
           </h1>
 
+          <span className="hero-title-divider" data-anim="hero-title" />
+
           <p className="hero-subtitle" data-anim="hero-subtitle">
-            Pioneering disruptive innovations in chemical sciences through
-            advanced material design and sustainable methodologies.
+            We pursue fundamental questions in catalysis, advanced materials, and sustainable
+            chemical processes, translating discoveries into applications that serve science
+            and society.
           </p>
 
           <div className="hero-buttons" data-anim="hero-buttons">
-            <Link href="/research/projects" className="hero-btn-primary">
+            <Link href="/research/areas" className="hero-btn-primary">
               Explore Research
             </Link>
             <Link href="/publications" className="hero-btn-secondary">
-              Publications
+              View Publications
             </Link>
           </div>
         </div>
@@ -127,25 +84,29 @@ export default function Home() {
               <div className="section-label">About the Lab</div>
               <h2 className="section-heading">Advancing Chemical Sciences at IIT Delhi</h2>
               <p className="about-body">
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolorum odio quod voluptates voluptatum beatae ad asperiores pariatur labore eveniet aliquid libero fuga ex, cumque reprehenderit quisquam delectus saepe sequi? Animi distinctio dolorem, deleniti doloremque enim sapiente quo, debitis eum reiciendis, repellat soluta numquam dolorum alias voluptate atque eaque culpa exercitationem nostrum. Voluptas ad porro vero fugiat modi? Consectetur cum dicta illum nisi aliquam blanditiis amet tempore temporibus mollitia ex quibusdam provident quos odit enim, inventore maxime?
+                Our laboratory brings together researchers investigating the frontiers of chemical
+                engineering — from single-atom catalysts that enable greener reactions to advanced
+                materials designed for energy storage, environmental remediation, and healthcare.
+                We publish in leading journals, collaborate with industry, and train the next
+                generation of chemical scientists.
               </p>
             </div>
             <div data-anim="about-right">
               <div className="about-card">
                 <div className="about-focus-item">
-                  <div className="about-focus-number">01</div>
+                  <div className="about-focus-number">I.</div>
                   <div className="about-focus-title">Catalysis &amp; Reaction Engineering</div>
-                  <div className="about-focus-desc">Designing next-generation catalytic systems for efficient chemical transformations and industrial applications.</div>
+                  <div className="about-focus-desc">Designing catalytic systems for efficient chemical transformations and industrial applications.</div>
                 </div>
                 <div className="about-focus-item">
-                  <div className="about-focus-number">02</div>
+                  <div className="about-focus-number">II.</div>
                   <div className="about-focus-title">Advanced Material Synthesis</div>
-                  <div className="about-focus-desc">Developing novel materials with tailored properties for energy, environment, and healthcare applications.</div>
+                  <div className="about-focus-desc">Developing novel materials with tailored properties for energy, environment, and healthcare.</div>
                 </div>
                 <div className="about-focus-item">
-                  <div className="about-focus-number">03</div>
+                  <div className="about-focus-number">III.</div>
                   <div className="about-focus-title">Sustainable Chemical Processes</div>
-                  <div className="about-focus-desc">Creating green methodologies that minimize environmental impact while maximizing process efficiency.</div>
+                  <div className="about-focus-desc">Creating green methodologies that minimize environmental impact while maximizing efficiency.</div>
                 </div>
               </div>
             </div>
@@ -153,7 +114,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ RESEARCH AREAS ═══ */}
+      {/* ═══ RESEARCH & ANNOUNCEMENTS ═══ */}
       <section className="section research-section">
         <div className="section-container">
           <div className="section-header-row">
@@ -161,33 +122,11 @@ export default function Home() {
               <div className="section-label">Latest Work</div>
               <h2 className="section-heading">Research &amp; Announcements</h2>
             </div>
-            <Link href="/research/areas" className="section-link">Explore more &rarr;</Link>
+            <Link href="/research/areas" className="section-link">View all research &rarr;</Link>
           </div>
           <ResearchCards />
-          <div style={{ marginTop: 40 }}>
-            <Link href="/research/areas" className="explore-btn">Explore more</Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ SCROLL QUOTE INTERLUDE ═══ */}
-      <section className="section" style={{ background: 'white' }}>
-        <div className="section-container">
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 48 }}>
-            <span style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 300, color: 'var(--c-text-primary)', lineHeight: 1.3 }} data-anim="fade-up">
-              Don&apos;t just capture change.
-            </span>
-            <span style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 300, color: 'var(--c-teal)', lineHeight: 1.3, marginTop: 4 }} data-anim="fade-up">
-              Act on it.
-            </span>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 32, maxWidth: 900, margin: '0 auto' }}>
-            <div data-anim="fade-left" style={{ fontSize: '1rem', color: 'var(--c-text-muted)', lineHeight: 1.75 }}>
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Possimus incidunt nulla debitis laudantium consequuntur ab nobis qui ea distinctio labore, hic adipisci ex in magni ducimus minima maiores voluptates sed quos autem facilis dignissimos repudiandae.
-            </div>
-            <div data-anim="fade-right" style={{ fontSize: '1rem', color: 'var(--c-text-muted)', lineHeight: 1.75 }}>
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit. Veniam, illum aliquid velit sunt modi libero accusantium praesentium eos cumque ducimus consequatur voluptatum iusto atque! Reprehenderit, quam fugiat perspiciatis eaque sed explicabo deleniti impedit aliquam ea, distinctio esse. Dicta, accusamus. Fugiat ad assumenda deleniti laborum necessitatibus!
-            </div>
+          <div style={{ marginTop: 48 }}>
+            <Link href="/research/areas" className="explore-btn">Explore Research Areas</Link>
           </div>
         </div>
       </section>
@@ -195,11 +134,12 @@ export default function Home() {
       {/* ═══ FACILITIES ═══ */}
       <section className="section" style={{ background: 'white' }}>
         <div className="section-container">
-          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <div style={{ textAlign: 'center', marginBottom: 56 }}>
             <div className="section-label" style={{ justifyContent: 'center' }}>Our Infrastructure</div>
             <h2 className="section-heading" style={{ textAlign: 'center' }}>Research Facilities</h2>
             <p className="facilities-subtitle">
-              Our lab is equipped with state-of-the-art instruments that enable cutting-edge research in chemical sciences. From advanced spectrometers to high-resolution microscopes, we have the tools necessary to explore the frontiers of chemistry.
+              Our laboratory is equipped with state-of-the-art instruments supporting research across
+              spectroscopy, microscopy, thermal analysis, and chemical characterization.
             </p>
           </div>
           <ResearchFacilitiesSection />

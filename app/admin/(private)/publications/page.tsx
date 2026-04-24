@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react'
-import AdminPublicationTable from '@/components/admin/publication/AdminPublicationTable'
-import CreatePublication from '@/components/admin/publication/createPublication'
+import AdminPublicationTable from './_components/AdminPublicationTable'
+import CreatePublication from './_components/createPublication'
 
 const page = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);

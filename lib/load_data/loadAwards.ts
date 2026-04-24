@@ -1,3 +1,5 @@
+"use server";
+
 import { prisma } from "@/lib/prisma";
 import { AwardType } from "@/lib/generated/prisma/enums";
 import { unstable_cache } from 'next/cache';

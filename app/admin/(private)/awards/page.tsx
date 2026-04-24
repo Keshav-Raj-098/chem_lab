@@ -1,7 +1,7 @@
 'use client'
-import React, { useState } from 'react'
-import AdminAwardsTable from '@/components/admin/awards/AdminAwardsTable'
-import CreateAward from '@/components/admin/awards/createAwards'
+import { useState } from 'react'
+import AdminAwardsTable from './_components/AdminAwardsTable'
+import CreateAward from './_components/createAwards'
 
 const page = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);

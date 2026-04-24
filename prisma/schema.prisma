@@ -38,6 +38,16 @@ model ResearchProjects {
   @@index([completedOn])
 }
 
+
+model ResearchAreas {
+  id        String   @id @default(uuid())
+  name      String
+  body      String
+  imgUrl    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Equipments {
   id           String   @id @default(uuid())
   name         String
@@ -84,10 +94,25 @@ model Publications {
   @@index([year])
 }
 
+model Alumni {
+  id        String              @id @default(uuid())
+  name      String
+  body      String
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+}
+
+enum NewsAndAnnouncementsType {
+  Vacancy
+  Event
+}
+
 model NewsAndAnnouncements {
   id        String   @id @default(uuid())
   title     String
   body      String
+  type      NewsAndAnnouncementsType @default(Event)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -123,4 +148,15 @@ enum PublicationCategory {
   BOOK
   OTHER
   PUBLICATION
+}
+
+
+
+model Gallery {
+  id        String   @id @default(uuid())
+  title     String
+  description String
+  imgUrl    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

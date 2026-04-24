@@ -5,14 +5,15 @@ export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
 
-        if (!body || !body.title || !body.newsBody) {
-            return NextResponse.json({ error: "Title and body are required" }, { status: 400 });
+        if (!body || !body.title || !body.newsBody || !body.type) {
+            return NextResponse.json({ error: "Title, body, and type are required" }, { status: 400 });
         }
 
         const news = await prisma.newsAndAnnouncements.create({
             data: {
                 title: body.title,
                 body: body.newsBody,
+                type: body.type,
             }
         });
 

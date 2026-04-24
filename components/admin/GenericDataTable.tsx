@@ -60,8 +60,7 @@ interface GenericDataTableProps<T> {
   columns: Column<T>[];
   fetchData: (page: number, limit: number, filters?: Record<string, any>) => Promise<{ data: T[]; meta: Meta }>;
   onEdit?: (item: T) => void;
-  onDelete?: (item: T) => void;
-  refreshTrigger?: number;
+  onDelete?: (item: T) => void;  onMoveToAlumni?: (item: T) => void;  refreshTrigger?: number;
   filtersConfig?: FilterConfig[];
 }
 
@@ -89,12 +88,14 @@ const TableRowMemo = React.memo(({
   item, 
   columns, 
   onEdit, 
-  onDelete 
+  onDelete,
+  onMoveToAlumni
 }: { 
   item: any, 
   columns: Column<any>[], 
   onEdit?: (item: any) => void, 
-  onDelete?: (item: any) => void 
+  onDelete?: (item: any) => void,
+  onMoveToAlumni?: (item: any) => void
 }) => (
   <TableRow key={item.id}>
     {columns.map((column, idx) => (
@@ -104,7 +105,7 @@ const TableRowMemo = React.memo(({
           : (item[column.accessorKey as keyof any] as unknown as React.ReactNode)}
       </TableCell>
     ))}
-    {(onEdit || onDelete) && (
+    {(onEdit || onDelete || onMoveToAlumni) && (
       <TableCell className="text-right">
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -115,13 +116,19 @@ const TableRowMemo = React.memo(({
               </Button>
             }
           />
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-fit">
             <DropdownMenuGroup>
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               {onEdit && (
                 <DropdownMenuItem onClick={() => onEdit(item)}>
                   <Pencil className="mr-2 h-4 w-4" />
                   Edit
+                </DropdownMenuItem>
+              )}
+              {onMoveToAlumni && (
+                 <DropdownMenuItem onClick={() => onMoveToAlumni(item)}>
+                  <ChevronRight className="mr-2 h-4 w-4" />
+                  Move to Alumni
                 </DropdownMenuItem>
               )}
               {onDelete && (
@@ -148,6 +155,7 @@ export function GenericDataTable<T extends { id: string }>({
   fetchData,
   onEdit,
   onDelete,
+  onMoveToAlumni,
   refreshTrigger = 0,
   filtersConfig = [],
 }: GenericDataTableProps<T>) {
@@ -250,7 +258,7 @@ export function GenericDataTable<T extends { id: string }>({
         <CardContent className={title ? "" : "p-0"}>
           <div className={title ? "rounded-md border" : "border-b border-t"}>
             <Table>
-              <TableHeaderMemo columns={columns} showActions={!!(onEdit || onDelete)} />
+              <TableHeaderMemo columns={columns} showActions={!!(onEdit || onDelete || onMoveToAlumni)} />
               <TableBody>
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
@@ -260,7 +268,7 @@ export function GenericDataTable<T extends { id: string }>({
                           <Skeleton className="h-4 w-full" />
                         </TableCell>
                       ))}
-                      {(onEdit || onDelete) && (
+                      {(onEdit || onDelete || onMoveToAlumni) && (
                         <TableCell className="text-right">
                           <Skeleton className="h-4 w-8 ml-auto" />
                         </TableCell>
@@ -281,6 +289,7 @@ export function GenericDataTable<T extends { id: string }>({
                       columns={columns} 
                       onEdit={onEdit} 
                       onDelete={onDelete} 
+                      onMoveToAlumni={onMoveToAlumni}
                     />
                   ))
                 )}
