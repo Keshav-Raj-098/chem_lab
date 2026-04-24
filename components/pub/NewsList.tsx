@@ -26,7 +26,9 @@ export const NewsList = ({ initialNews }: NewsListProps) => {
   const loadMore = async () => {
     setLoading(true)
     const nextPage = page + 1
-    const response = await fetchNewsAction(nextPage)
+    const response = await fetchNewsAction({
+      page: nextPage,
+    })
     
     if (response.success && response.data.length > 0) {
       setNews((prev) => [...prev, ...response.data as NewsAndAnnouncements[]])

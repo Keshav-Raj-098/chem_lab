@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import dynamic from "next/dynamic";
 import { Plus, Upload, X } from "lucide-react";
 
-const RichTextEditor = dynamic(() => import("../textEditor"), {
+const RichTextEditor = dynamic(() => import("@/components/admin/textEditor"), {
   ssr: false,
   loading: () => (
     <div className="h-40 border rounded-md bg-muted/20 animate-pulse flex items-center justify-center text-muted-foreground text-sm">
