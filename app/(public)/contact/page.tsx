@@ -33,15 +33,15 @@ const ContactPage = () => {
             </p>
 
             <p className="text-gray-800">
-              <span className="font-semibold">Office:</span> Academic Block A - 311
+              <span className="font-semibold">Office:</span> Academic Block 1 - 325
             </p>
 
             <p className="text-gray-800">
-              <span className="font-semibold">Laboratory:</span> A-709, A-515
+              <span className="font-semibold">Laboratory:</span> A-225, B-122
             </p>
 
             <p className="text-gray-800">
-              <span className="font-semibold">Call us @</span> +91-(040) 2301 6208
+              <span className="font-semibold">Call us @</span> +91-(051) 2759 7018
             </p>
 
             <p className="font-semibold text-gray-900">Write to us @:</p>
