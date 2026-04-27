@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { GenericDataTable, Column } from "@/components/admin/GenericDataTable";
-import axios from "@/lib/axiosConfig";
 import { toast } from "sonner";
+import { listResearchAreas } from "../_server/queries";
+import { deleteResearchArea } from "../_server/actions";
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -34,11 +35,8 @@ export default function AdminResearchAreasTable({ refreshTrigger, setRefreshTrig
   const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchResearchAreas = async (page: number, limit: number) => {
-    const response = await axios.get(`/admin/research-areas?page=${page}&limit=${limit}`);
-    return {
-      data: response.data.researchAreas,
-      meta: response.data.meta,
-    };
+    const result = await listResearchAreas({ page, limit });
+    return { data: result.data, meta: result.meta };
   };
 
   const handleEdit = (area: ResearchArea) => {
@@ -54,7 +52,8 @@ export default function AdminResearchAreasTable({ refreshTrigger, setRefreshTrig
     if (!selectedArea) return;
     try {
       setIsDeleting(true);
-      await axios.delete(`/admin/research-areas/${selectedArea.id}`);
+      const res = await deleteResearchArea(selectedArea.id);
+      if (!res.ok) { toast.error(res.error); return; }
       toast.success("Research area deleted successfully");
       setDeleteDialogOpen(false);
       setRefreshTrigger((prev) => prev + 1);

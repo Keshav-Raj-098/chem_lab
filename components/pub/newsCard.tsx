@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { fetchNewsAction } from '@/lib/news';
+import { Reveal } from '@/components/pub/reveal';
 
 interface NewsCardProps {
   title: string;
@@ -100,7 +101,9 @@ const NewsSection = () => {
           ) : (
             <>
               {itemsToShow.map((item, index) => (
-                <NewsCard key={item.id || index} {...item} />
+                <Reveal key={item.id || index} delay={index * 0.08} y={20} duration={0.6}>
+                  <NewsCard {...item} />
+                </Reveal>
               ))}
             </>
           )}

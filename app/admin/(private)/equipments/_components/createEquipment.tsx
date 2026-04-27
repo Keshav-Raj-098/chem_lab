@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import axios from "@/lib/axiosConfig";
 import { toast } from "sonner";
+import { createEquipment } from "../_server/actions";
 import {
   Dialog,
   DialogContent,
@@ -45,7 +45,8 @@ const CreateEquipment = ({ onSuccess }: CreateEquipmentProps) => {
 
     try {
       setLoading(true);
-      await axios.post("/admin/equipments", formData);
+      const res = await createEquipment(formData);
+      if (!res.ok) { toast.error(res.error); return; }
 
       toast.success("Equipment created successfully");
       setFormData({
@@ -60,7 +61,7 @@ const CreateEquipment = ({ onSuccess }: CreateEquipmentProps) => {
       onSuccess();
     } catch (error: any) {
       console.error("Error creating equipment:", error);
-      toast.error(error.response?.data?.error || "Failed to create equipment");
+      toast.error("Failed to create equipment");
     } finally {
       setLoading(false);
     }

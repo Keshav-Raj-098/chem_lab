@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import axios from "@/lib/axiosConfig";
 import { toast } from "sonner";
+import { createGallery } from "../_server/actions";
 import {
   Dialog,
   DialogContent,
@@ -74,14 +74,15 @@ const CreateGallery = ({ onSuccess }: CreateGalleryProps) => {
       data.append("description", description);
       data.append("image", imageFile);
 
-      await axios.post("/admin/gallery", data);
+      const res = await createGallery(data);
+      if (!res.ok) { toast.error(res.error); return; }
       toast.success("Gallery item created successfully");
       resetForm();
       setOpen(false);
       onSuccess();
     } catch (error: any) {
       console.error("Error creating gallery item:", error);
-      toast.error(error.response?.data?.error || "Failed to create gallery item");
+      toast.error("Failed to create gallery item");
     } finally {
       setLoading(false);
     }

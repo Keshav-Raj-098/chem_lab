@@ -110,25 +110,13 @@ export default async function PublicationsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <header className="page-header">
-        <div className="page-header-inner">
-          <div className="page-header-eyebrow">Research Output</div>
-          <h1 className="page-header-title">Publications</h1>
-          <p className="page-header-subtitle">
-            Peer-reviewed journal articles, conference proceedings, patents, and invited talks
-            from the laboratory. Grouped by category — expand each section to browse the
-            complete record.
-          </p>
-          {grandTotal > 0 && (
-            <p className="mt-4 text-xs font-semibold tracking-[0.16em] uppercase text-slate-400 tabular-nums">
-              {grandTotal.toLocaleString()} publications across {orderedGroups.length}{' '}
-              {orderedGroups.length === 1 ? 'category' : 'categories'}
-            </p>
-          )}
-        </div>
-      </header>
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <h1 className="text-3xl md:text-4xl font-bold text-center mb-10">
+          Publications
+        </h1>
+      </div>
 
-      <main className="max-w-5xl mx-auto px-6 md:px-10 py-16 md:py-20 space-y-10 md:space-y-12">
+      <main className="max-w-5xl mx-auto px-6 md:px-10 pb-16 md:pb-20 space-y-10 md:space-y-12">
         {orderedGroups.length === 0 ? (
           <div className="text-center py-24 text-slate-400 text-sm">
             No publications recorded yet.

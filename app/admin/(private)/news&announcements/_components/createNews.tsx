@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import axios from "@/lib/axiosConfig";
 import { toast } from "sonner";
+import { createNews as createNewsAction } from "../_server/actions";
 import {
   Dialog,
   DialogContent,
@@ -48,11 +48,11 @@ const CreateNews = ({ onSuccess }: CreateNewsProps) => {
 
     try {
       setLoading(true);
-      await axios.post("/admin/news&announcements", {
-        title,
-        newsBody,
-        type,
-      });
+      const res = await createNewsAction({ title, newsBody, type });
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
 
       toast.success("News item created successfully");
       setTitle("");
@@ -62,7 +62,7 @@ const CreateNews = ({ onSuccess }: CreateNewsProps) => {
       onSuccess();
     } catch (error: any) {
       console.error("Error creating news:", error);
-      toast.error(error.response?.data?.error || "Failed to create news item");
+      toast.error("Failed to create news item");
     } finally {
       setLoading(false);
     }

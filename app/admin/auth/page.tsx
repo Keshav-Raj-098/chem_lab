@@ -1,7 +1,6 @@
 "use client"
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import axiosInstance from '@/lib/axiosConfig'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -22,15 +21,15 @@ export default function Auth() {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const body = LoginSchema.parse({ username, password });
+      LoginSchema.parse({ username, password });
 
       const response = await signin({ username, password });
 
-      if(response.status){
-        localStorage.setItem('token', response.token!);
+      if (response.status) {
         ShowToast("Login successful!", "success");
         router.push('/admin/dashboard');
-      }else{
+        router.refresh();
+      } else {
         ShowToast(response.message, "error");
       }
 

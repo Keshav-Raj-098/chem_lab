@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import axios from "@/lib/axiosConfig";
 import { toast } from "sonner";
+import { getGroupMember } from "../../_server/queries";
+import { updateGroupMember } from "../../_server/actions";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -18,8 +19,22 @@ export default function EditMemberPage({ params }: { params: Promise<{ id: strin
   useEffect(() => {
     const fetchMember = async () => {
       try {
-        const response = await axios.get(`/admin/group/${id}`);
-        setInitialData(response.data);
+        const m = await getGroupMember(id);
+        if (!m) {
+          toast.error("Member not found");
+          router.push("/admin/group");
+          return;
+        }
+        setInitialData({
+          name: m.name,
+          email: m.email,
+          researchAreas: m.researchAreas,
+          designation: m.designation ?? "",
+          category: m.category,
+          profileImgUrl: m.profileImgUrl ?? "",
+          profileLink: m.profileLink ?? "",
+          phoneNumber: m.phoneNumber ?? "",
+        });
       } catch (error: any) {
         console.error("Error fetching member:", error);
         toast.error("Failed to load group member data");
@@ -49,12 +64,13 @@ export default function EditMemberPage({ params }: { params: Promise<{ id: strin
         formData.append("profileImgUrl", data.profileImgUrl || "");
       }
 
-      await axios.put(`/admin/group/${id}`, formData);
+      const res = await updateGroupMember(id, formData);
+      if (!res.ok) { toast.error(res.error); return; }
       toast.success("Group member updated successfully");
       router.push("/admin/group");
     } catch (error: any) {
       console.error("Error updating group member:", error);
-      toast.error(error.response?.data?.error || "Failed to update group member");
+      toast.error("Failed to update group member");
     } finally {
       setLoading(false);
     }

@@ -37,7 +37,7 @@ const ResearchAreaCard = ({ item, index }: { item: any, index: number }) => {
             <div className="research-area-content">
                 <h2 className="research-area-name">{item.name}</h2>
                 <div
-                    className="research-area-body prose prose-invert max-w-none"
+                    className="research-area-body prose max-w-none"
                     dangerouslySetInnerHTML={{ __html: item.body }}
                 />
             </div>

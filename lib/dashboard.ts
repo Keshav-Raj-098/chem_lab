@@ -1,8 +1,11 @@
+import "server-only";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/admin/auth";
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 export async function getDashboardStats() {
+  await requireAdmin();
   const [
     projectCounts,
     equipmentCounts,

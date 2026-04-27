@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import axios from "@/lib/axiosConfig";
 import { toast } from "sonner";
+import { createAlumni } from "../_server/actions";
 import {
   Dialog,
   DialogContent,
@@ -39,10 +39,8 @@ const CreateAlumni = ({ onSuccess }: CreateAlumniProps) => {
 
     try {
       setLoading(true);
-      await axios.post("/admin/alumni", {
-        name,
-        body,
-      });
+      const res = await createAlumni({ name, body });
+      if (!res.ok) { toast.error(res.error); return; }
 
       toast.success("Alumni record created successfully");
       setName("");
@@ -51,7 +49,7 @@ const CreateAlumni = ({ onSuccess }: CreateAlumniProps) => {
       onSuccess();
     } catch (error: any) {
       console.error("Error creating alumni:", error);
-      toast.error(error.response?.data?.error || "Failed to create alumni record");
+      toast.error("Failed to create alumni record");
     } finally {
       setLoading(false);
     }

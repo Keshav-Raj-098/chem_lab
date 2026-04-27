@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { GenericDataTable, Column, FilterConfig } from "@/components/admin/GenericDataTable";
-import axios from "@/lib/axiosConfig";
 import { toast } from "sonner";
+import { listGroupMembers } from "../_server/queries";
+import { deleteGroupMember, moveMemberToAlumni } from "../_server/actions";
 import GroupMemberForm, { GroupMemberFormData } from "./GroupMemberForm";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -42,12 +43,24 @@ export default function AdminGroupTable({ refreshTrigger, setRefreshTrigger }: A
   const router = useRouter();
 
   const fetchMembers = async (page: number, limit: number, filters?: Record<string, any>) => {
-    const categoryParam = filters?.category ? `&category=${filters.category}` : "";
-    const response = await axios.get(`/admin/group?page=${page}&limit=${limit}${categoryParam}`);
-    return {
-      data: response.data.members,
-      meta: response.data.meta,
-    };
+    const result = await listGroupMembers({
+      page,
+      limit,
+      category: (filters?.category as string) ?? null,
+    });
+    const data: GroupMember[] = result.data.map((m) => ({
+      id: m.id,
+      name: m.name,
+      email: m.email,
+      researchAreas: m.researchAreas ?? "",
+      designation: m.designation ?? "",
+      category: m.category,
+      profileImgUrl: m.profileImgUrl ?? "",
+      profileLink: m.profileLink ?? "",
+      phoneNumber: m.phoneNumber ?? "",
+      createdAt: m.createdAt,
+    }));
+    return { data, meta: result.meta };
   };
 
   const handleEdit = (member: GroupMember) => {
@@ -57,7 +70,8 @@ export default function AdminGroupTable({ refreshTrigger, setRefreshTrigger }: A
   const handleDelete = async (member: GroupMember) => {
     if (!confirm(`Are you sure you want to delete ${member.name}?`)) return;
     try {
-      await axios.delete(`/admin/group/${member.id}`);
+      const res = await deleteGroupMember(member.id);
+      if (!res.ok) { toast.error(res.error); return; }
       toast.success("Member deleted successfully");
       setRefreshTrigger((prev) => prev + 1);
     } catch (error) {
@@ -69,7 +83,8 @@ export default function AdminGroupTable({ refreshTrigger, setRefreshTrigger }: A
   const handleMoveToAlumni = async (member: GroupMember) => {
     if (!confirm(`Are you sure you want to move ${member.name} to Alumni?\n\nThis will remove them from the current group list, delete their hosted image from Cloudinary, and create a new record in the Alumni table.\n\nNote: No data retrieval will be possible once moved.`)) return;
     try {
-      await axios.post(`/admin/group/${member.id}/move-to-alumni`);
+      const res = await moveMemberToAlumni(member.id);
+      if (!res.ok) { toast.error(res.error); return; }
       toast.success("Member moved to alumni successfully");
       setRefreshTrigger((prev) => prev + 1);
     } catch (error) {

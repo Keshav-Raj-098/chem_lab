@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { GenericDataTable, Column } from "@/components/admin/GenericDataTable";
-import axios from "@/lib/axiosConfig";
 import { toast } from "sonner";
+import { listPublications } from "../_server/queries";
+import { updatePublication, deletePublication } from "../_server/actions";
 import {
   Dialog,
   DialogContent,
@@ -71,18 +72,12 @@ export default function AdminPublicationTable({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchPublications = async (page: number, limit: number, filters?: Record<string, any>) => {
-    let url = `/admin/publication?page=${page}&limit=${limit}`;
-    
-    if (filters?.category) {
-      url += `&category=${filters.category}`;
-    }
-    
-    const response = await axios.get(url);
-    console.log("Fetched publications:", response.data);
-    return {
-      data: response.data.publications,
-      meta: response.data.meta,
-    };
+    const result = await listPublications({
+      page,
+      limit,
+      category: (filters?.category as PublicationCategory) ?? null,
+    });
+    return { data: result.data, meta: result.meta };
   };
 
   const handleEdit = (pub: Publication) => {
@@ -125,17 +120,18 @@ export default function AdminPublicationTable({
 
     try {
       setIsUpdating(true);
-      await axios.put(`/admin/publication/${selectedPublication.id}`, {
+      const res = await updatePublication(selectedPublication.id, {
         publicationBody: editBody,
         publicationCategory: editCategory,
         year: editYear === "None" ? null : editYear === "<2000" ? 1999 : parseInt(editYear),
       });
+      if (!res.ok) { ShowToast(res.error, "error"); return; }
       ShowToast("Publication updated successfully", "success");
       setEditDialogOpen(false);
       setRefreshTrigger((prev) => prev + 1);
     } catch (error: any) {
       console.error("Update failed:", error);
-      ShowToast(error.response?.data?.error || "Failed to update publication", "error");
+      ShowToast("Failed to update publication", "error");
     } finally {
       setIsUpdating(false);
     }
@@ -145,7 +141,8 @@ export default function AdminPublicationTable({
     if (!selectedPublication) return;
     try {
       setIsDeleting(true);
-      await axios.delete(`/admin/publication/${selectedPublication.id}`);
+      const res = await deletePublication(selectedPublication.id);
+      if (!res.ok) { ShowToast(res.error, "error"); return; }
       ShowToast("Publication deleted successfully", "success");
       setDeleteDialogOpen(false);
       setRefreshTrigger((prev) => prev + 1);

@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import axios from "@/lib/axiosConfig";
 import { toast } from "sonner";
+import { createAward } from "../_server/actions";
+import { AwardType } from "@/lib/generated/prisma/enums";
 import {
   Dialog,
   DialogContent,
@@ -34,7 +35,7 @@ interface CreateAwardProps {
 const CreateAward = ({ onSuccess }: CreateAwardProps) => {
   const [open, setOpen] = useState(false);
   const [awardBody, setAwardBody] = useState("");
-  const [awardType, setAwardType] = useState("GROUP_MEMBER");
+  const [awardType, setAwardType] = useState<AwardType>(AwardType.GROUP_MEMBER);
   const [loading, setLoading] = useState(false);
 
   const handleCreateAward = async () => {
@@ -45,19 +46,20 @@ const CreateAward = ({ onSuccess }: CreateAwardProps) => {
 
     try {
       setLoading(true);
-      const res = await axios.post("/admin/awards", {
-        awardBody,
-        awardType,
-      });
+      const res = await createAward({ awardBody, awardType });
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
 
       toast.success("Award created successfully");
       setAwardBody("");
-      setAwardType("GROUP_MEMBER");
+      setAwardType(AwardType.GROUP_MEMBER);
       setOpen(false);
       onSuccess();
     } catch (error: any) {
       console.error("Error creating award:", error);
-      toast.error(error.response?.data?.error || "Failed to create award");
+      toast.error("Failed to create award");
     } finally {
       setLoading(false);
     }
@@ -77,13 +79,13 @@ const CreateAward = ({ onSuccess }: CreateAwardProps) => {
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="category">Category</Label>
-              <Select value={awardType} onValueChange={(val) => setAwardType(val as string)}>
+              <Select value={awardType} onValueChange={(val) => setAwardType(val as AwardType)}>
                 <SelectTrigger id="category">
                   <SelectValue placeholder="Select Category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="GROUP_LEADER">Group Leader</SelectItem>
-                  <SelectItem value="GROUP_MEMBER">Group Member</SelectItem>
+                  <SelectItem value={AwardType.GROUP_LEADER}>Group Leader</SelectItem>
+                  <SelectItem value={AwardType.GROUP_MEMBER}>Group Member</SelectItem>
                 </SelectContent>
               </Select>
             </div>

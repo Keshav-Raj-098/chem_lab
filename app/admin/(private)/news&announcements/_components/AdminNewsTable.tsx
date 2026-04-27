@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { GenericDataTable, Column } from "@/components/admin/GenericDataTable";
-import axios from "@/lib/axiosConfig";
 import { toast } from "sonner";
+import { listNews } from "../_server/queries";
+import { updateNews, deleteNews } from "../_server/actions";
 import {
   Dialog,
   DialogContent,
@@ -50,11 +51,8 @@ export default function AdminNewsTable({ refreshTrigger, setRefreshTrigger }: Ad
   const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchNews = async (page: number, limit: number) => {
-    const response = await axios.get(`/admin/news&announcements?page=${page}&limit=${limit}`);
-    return {
-      data: response.data.news,
-      meta: response.data.meta,
-    };
+    const result = await listNews({ page, limit });
+    return { data: result.data, meta: result.meta };
   };
 
   const handleEdit = (news: NewsItem) => {
@@ -74,11 +72,15 @@ export default function AdminNewsTable({ refreshTrigger, setRefreshTrigger }: Ad
     if (!selectedNews) return;
     try {
       setIsUpdating(true);
-      await axios.put(`/admin/news&announcements/${selectedNews.id}`, {
+      const res = await updateNews(selectedNews.id, {
         title: editTitle,
         newsBody: editBody,
         type: editType,
       });
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
       toast.success("News updated successfully");
       setEditDialogOpen(false);
       setRefreshTrigger((prev) => prev + 1);
@@ -94,7 +96,11 @@ export default function AdminNewsTable({ refreshTrigger, setRefreshTrigger }: Ad
     if (!selectedNews) return;
     try {
       setIsDeleting(true);
-      await axios.delete(`/admin/news&announcements/${selectedNews.id}`);
+      const res = await deleteNews(selectedNews.id);
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
       toast.success("News deleted successfully");
       setDeleteDialogOpen(false);
       setRefreshTrigger((prev) => prev + 1);

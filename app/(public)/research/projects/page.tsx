@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { fetchResearchByStatus } from '@/lib/load_data/loadResearch'
 import { ResearchStatus } from '@/lib/generated/prisma/enums'
-import { Loader2, ChevronDown } from 'lucide-react'
+import { Loader2, ChevronDown, X } from 'lucide-react'
 import ResearchAnimations from '@/components/pub/researchAnimations'
 
 interface Project {
@@ -11,9 +11,9 @@ interface Project {
   title: string
   description: string
   body: string
-  fundingAgencies: string[]
-  investigators: string[]
-  contributors: string[]
+  fundingAgencies: string[] | string | null
+  investigators: string[] | string | null
+  contributors: string[] | string | null
   duration: string | null
   status: ResearchStatus
   amntFunded: string | number | null
@@ -21,14 +21,24 @@ interface Project {
   createdAt: string | Date
 }
 
+const toArray = (v: string[] | string | null | undefined): string[] => {
+  if (!v) return []
+  if (Array.isArray(v)) return v.filter(Boolean)
+  return String(v).split(/[,;\n]/).map((s) => s.trim()).filter(Boolean)
+}
+
+type FundingFilter = 'ALL' | 'FUNDED' | 'UNFUNDED'
+
 const ResearchPage = () => {
   const [status, setStatus] = useState<ResearchStatus | 'ALL'>('ALL')
+  const [funding, setFunding] = useState<FundingFilter>('ALL')
   const [data, setData] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'amount-high' | 'amount-low'>('newest')
-  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [statusOpen, setStatusOpen] = useState(false)
+  const [fundingOpen, setFundingOpen] = useState(false)
   const [sortOpen, setSortOpen] = useState(false)
+  const [activeProject, setActiveProject] = useState<Project | null>(null)
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -50,7 +60,27 @@ const ResearchPage = () => {
     loadData()
   }, [loadData])
 
-  const sortedData = [...data].sort((a, b) => {
+  useEffect(() => {
+    if (!activeProject) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setActiveProject(null)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [activeProject])
+
+  const isFunded = (p: Project) => {
+    const n = parseFloat(p.amntFunded?.toString() || '0')
+    return n > 0
+  }
+
+  const filteredData = data.filter((p) => {
+    if (funding === 'FUNDED') return isFunded(p)
+    if (funding === 'UNFUNDED') return !isFunded(p)
+    return true
+  })
+
+  const sortedData = [...filteredData].sort((a, b) => {
     if (sortBy === 'newest') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     if (sortBy === 'oldest') return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     const amountA = parseFloat(a.amntFunded?.toString() || '0')
@@ -59,43 +89,27 @@ const ResearchPage = () => {
     return amountA - amountB
   })
 
-  const getStatusColor = (s: ResearchStatus) => {
-    if (s === ResearchStatus.ONGOING) return 'text-teal-600'
-    if (s === ResearchStatus.COMPLETED) return 'text-slate-600'
-    return 'text-amber-600'
-  }
-
   const ProjectCard = ({ project, index }: { project: Project; index: number }) => {
-    const isExpanded = expandedId === project.id
-
-    const handleToggle = () => {
-      setExpandedId(isExpanded ? null : project.id)
-    }
-
     const statusLabel = project.status === ResearchStatus.ONGOING ? 'Ongoing' : project.status === ResearchStatus.COMPLETED ? 'Completed' : 'Planned'
+    const agencies = toArray(project.fundingAgencies)
 
     return (
-      <div
-        className="group relative bg-white py-2 px-3 border border-slate-100 rounded-lg transition-all duration-300 hover:bg-slate-50 hover:border-teal-200 mb-2"
-        onClick={handleToggle}
-      >
+      <div className="group relative bg-white py-2 px-3 border border-slate-100 rounded-lg transition-all duration-300 hover:bg-slate-50 hover:border-teal-200 mb-2">
         <div className="flex items-start gap-4">
           <span className="text-teal-600/30 font-serif text-lg italic min-w-[1.5rem] mt-0.5 group-hover:text-teal-600 transition-colors">
             {index + 1}.
           </span>
 
-          <div className="flex-1 space-y-1">
-            {/* Title */}
-            <h3 className="text-[#0f2557] font-serif text-base leading-tight cursor-pointer group-hover:text-teal-700 transition-colors">
+          <div className="flex-1 space-y-1 min-w-0">
+            <h3 className="text-[#0f2557] font-serif text-base leading-tight group-hover:text-teal-700 transition-colors">
               {project.title}
             </h3>
 
-            {/* Metadata - Compact Inline Row */}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-slate-500 font-sans">
-              {project.fundingAgencies && project.fundingAgencies.length > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Agency:</span>
-                  <span className="text-slate-700">{project.fundingAgencies[0]}</span>
+              {agencies.length > 0 && (
+                <div className="flex items-start gap-1.5">
+                  <span className="font-bold text-slate-400 uppercase tracking-wider text-[10px] mt-0.5 shrink-0">Agency:</span>
+                  <span className="text-slate-700 wrap-break-word">{agencies.join(', ')}</span>
                 </div>
               )}
 
@@ -122,28 +136,13 @@ const ResearchPage = () => {
             </div>
           </div>
 
-          <div className="self-center">
-            <ChevronDown className={`w-4 h-4 text-slate-300 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-teal-600' : 'group-hover:text-slate-400'}`} />
-          </div>
+          <button
+            onClick={() => setActiveProject(project)}
+            className="self-center shrink-0 px-3 py-1 text-xs font-medium text-teal-700 border border-teal-200 rounded-md hover:bg-teal-50 hover:border-teal-400 transition-colors cursor-pointer"
+          >
+            View
+          </button>
         </div>
-
-        {/* Expanded details */}
-        {isExpanded && (
-          <div className="mt-4 pt-4 border-t border-slate-100 ml-9 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-            {project.body && (
-              <div className="text-sm text-slate-600 leading-relaxed font-sans max-w-3xl" dangerouslySetInnerHTML={{ __html: project.body }} />
-            )}
-
-            <div className="flex gap-4 text-xs">
-              {project.investigators && project.investigators.length > 0 && (
-                <div>
-                  <span className="font-bold text-slate-400 uppercase tracking-tighter mr-2">Lead:</span>
-                  <span className="text-slate-700">{project.investigators.join(', ')}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     )
   }
@@ -156,86 +155,110 @@ const ResearchPage = () => {
     )
   }
 
+  const statusLabel = (s: ResearchStatus | 'ALL') =>
+    s === 'ALL' ? 'All' : s === ResearchStatus.ONGOING ? 'Ongoing' : s === ResearchStatus.COMPLETED ? 'Completed' : 'Planned'
+
+  const fundingLabel = (f: FundingFilter) =>
+    f === 'ALL' ? 'All' : f === 'FUNDED' ? 'Funded' : 'Non-funded'
+
   return (
     <div className="min-h-screen bg-white">
       <ResearchAnimations />
 
-      {/* Header */}
-      <div className="pt-28 pb-6">
-        <div className="max-w-6xl mx-auto px-12">
-          <div data-anim="header-left">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-8 h-px bg-teal-600" />
-              <span className="text-xs font-medium tracking-widest uppercase text-teal-600">Research Portfolio</span>
-            </div>
-            <h1 className="text-3xl md:text-4xl font-light tracking-tight text-slate-900">Research Projects</h1>
-            <p className="mt-2 text-sm text-slate-500 font-light max-w-2xl">
-              A comprehensive collection of ongoing and completed research initiatives across catalysis, materials science, and sustainable processes.
-            </p>
-          </div>
-        </div>
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <h1 className="text-3xl md:text-4xl font-bold text-center mb-10">
+          Research Projects
+        </h1>
       </div>
 
-      {/* Filter bar */}
       <div className="sticky top-[68px] z-40 bg-white border-y border-slate-100 py-3" data-anim="filter-bar">
-        <div className="max-w-6xl mx-auto px-12 flex items-center justify-between gap-4">
-          {/* Left: Status */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium tracking-widest uppercase text-slate-400">Filter</span>
-            <div className="relative">
-              <button
-                onClick={() => setStatusOpen(!statusOpen)}
-                className="flex items-center gap-2 px-3 py-1 text-sm font-light text-slate-700 cursor-pointer hover:text-teal-600 transition-colors"
-              >
-                {status === 'ALL' ? 'All' : status === ResearchStatus.ONGOING ? 'Ongoing' : status === ResearchStatus.COMPLETED ? 'Completed' : 'Planned'}
-                <ChevronDown className="w-3.5 h-3.5" />
-              </button>
-              {statusOpen && (
-                <div className="absolute top-full mt-1 left-0 bg-white border border-slate-200 shadow-md py-1 min-w-[140px] z-50">
-                  {['ALL', ResearchStatus.ONGOING, ResearchStatus.COMPLETED, ResearchStatus.PLANNED].map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => { setStatus(s as any); setStatusOpen(false) }}
-                      className={`w-full px-3 py-1.5 text-sm font-light text-left transition-colors ${
-                        status === s
-                          ? 'bg-teal-50 text-teal-700'
-                          : 'text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      {s === 'ALL' ? 'All' : s === ResearchStatus.ONGOING ? 'Ongoing' : s === ResearchStatus.COMPLETED ? 'Completed' : 'Planned'}
-                    </button>
-                  ))}
-                </div>
-              )}
+        <div className="max-w-6xl mx-auto px-12 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-4 flex-wrap">
+            {/* Status */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium tracking-widest uppercase text-slate-400">Status</span>
+              <div className="relative">
+                <button
+                  onClick={() => { setStatusOpen(!statusOpen); setFundingOpen(false); setSortOpen(false) }}
+                  className="flex items-center gap-2 px-3 py-1 text-sm font-light text-slate-700 cursor-pointer hover:text-teal-600 transition-colors border border-slate-200 rounded-md"
+                >
+                  {statusLabel(status)}
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
+                {statusOpen && (
+                  <div className="absolute top-full mt-1 left-0 bg-white border border-slate-200 shadow-md py-1 min-w-35 z-50 rounded-md">
+                    {(['ALL', ResearchStatus.ONGOING, ResearchStatus.COMPLETED, ResearchStatus.PLANNED] as const).map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => { setStatus(s); setStatusOpen(false) }}
+                        className={`w-full px-3 py-1.5 text-sm font-light text-left transition-colors ${
+                          status === s ? 'bg-teal-50 text-teal-700' : 'text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        {statusLabel(s)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
+
+            {/* Funding */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium tracking-widest uppercase text-slate-400">Funding</span>
+              <div className="relative">
+                <button
+                  onClick={() => { setFundingOpen(!fundingOpen); setStatusOpen(false); setSortOpen(false) }}
+                  className="flex items-center gap-2 px-3 py-1 text-sm font-light text-slate-700 cursor-pointer hover:text-teal-600 transition-colors border border-slate-200 rounded-md"
+                >
+                  {fundingLabel(funding)}
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
+                {fundingOpen && (
+                  <div className="absolute top-full mt-1 left-0 bg-white border border-slate-200 shadow-md py-1 min-w-35 z-50 rounded-md">
+                    {(['ALL', 'FUNDED', 'UNFUNDED'] as const).map((f) => (
+                      <button
+                        key={f}
+                        onClick={() => { setFunding(f); setFundingOpen(false) }}
+                        className={`w-full px-3 py-1.5 text-sm font-light text-left transition-colors ${
+                          funding === f ? 'bg-teal-50 text-teal-700' : 'text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        {fundingLabel(f)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
             <span className="text-xs text-slate-400">({sortedData.length})</span>
           </div>
 
-          {/* Right: Sort */}
+          {/* Sort */}
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium tracking-widest uppercase text-slate-400">Sort</span>
             <div className="relative">
               <button
-                onClick={() => setSortOpen(!sortOpen)}
-                className="flex items-center gap-2 px-3 py-1 text-sm font-light text-slate-700 cursor-pointer hover:text-teal-600 transition-colors"
+                onClick={() => { setSortOpen(!sortOpen); setStatusOpen(false); setFundingOpen(false) }}
+                className="flex items-center gap-2 px-3 py-1 text-sm font-light text-slate-700 cursor-pointer hover:text-teal-600 transition-colors border border-slate-200 rounded-md"
               >
                 {sortBy === 'newest' ? 'Newest' : sortBy === 'oldest' ? 'Oldest' : sortBy === 'amount-high' ? 'Amount ↓' : 'Amount ↑'}
                 <ChevronDown className="w-3.5 h-3.5" />
               </button>
               {sortOpen && (
-                <div className="absolute top-full mt-1 right-0 bg-white border border-slate-200 shadow-md py-1 min-w-[140px] z-50">
+                <div className="absolute top-full mt-1 right-0 bg-white border border-slate-200 shadow-md py-1 min-w-35 z-50 rounded-md">
                   {[
                     { value: 'newest' as const, label: 'Newest' },
                     { value: 'oldest' as const, label: 'Oldest' },
-        
+                    { value: 'amount-high' as const, label: 'Amount ↓' },
+                    { value: 'amount-low' as const, label: 'Amount ↑' },
                   ].map(({ value, label }) => (
                     <button
                       key={value}
                       onClick={() => { setSortBy(value); setSortOpen(false) }}
                       className={`w-full px-3 py-1.5 text-sm font-light text-left transition-colors ${
-                        sortBy === value
-                          ? 'bg-teal-50 text-teal-700'
-                          : 'text-slate-600 hover:bg-slate-50'
+                        sortBy === value ? 'bg-teal-50 text-teal-700' : 'text-slate-600 hover:bg-slate-50'
                       }`}
                     >
                       {label}
@@ -261,6 +284,101 @@ const ResearchPage = () => {
           </div>
         )}
       </div>
+
+      {activeProject && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setActiveProject(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 flex items-start justify-between gap-4">
+              <h2 className="font-serif text-xl text-[#0f2557] leading-snug">
+                {activeProject.title}
+              </h2>
+              <button
+                onClick={() => setActiveProject(null)}
+                className="shrink-0 p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="px-6 py-5 space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Status</div>
+                  <div className={`${activeProject.status === ResearchStatus.ONGOING ? 'text-amber-600' : 'text-teal-600'} font-medium`}>
+                    {activeProject.status === ResearchStatus.ONGOING ? 'Ongoing' : activeProject.status === ResearchStatus.COMPLETED ? 'Completed' : 'Planned'}
+                  </div>
+                </div>
+
+                {activeProject.duration && (
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Period</div>
+                    <div className="text-slate-700">{activeProject.duration}</div>
+                  </div>
+                )}
+
+                {activeProject.amntFunded && (
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Funding</div>
+                    <div className="text-slate-700">₹{activeProject.amntFunded}L</div>
+                  </div>
+                )}
+
+                {activeProject.completedOn && (
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Completed</div>
+                    <div className="text-slate-700">{new Date(activeProject.completedOn).toLocaleDateString()}</div>
+                  </div>
+                )}
+              </div>
+
+              {toArray(activeProject.fundingAgencies).length > 0 && (
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Funding Agencies</div>
+                  <div className="text-sm text-slate-700">{toArray(activeProject.fundingAgencies).join(', ')}</div>
+                </div>
+              )}
+
+              {toArray(activeProject.investigators).length > 0 && (
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Investigators</div>
+                  <div className="text-sm text-slate-700">{toArray(activeProject.investigators).join(', ')}</div>
+                </div>
+              )}
+
+              {toArray(activeProject.contributors).length > 0 && (
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Contributors</div>
+                  <div className="text-sm text-slate-700">{toArray(activeProject.contributors).join(', ')}</div>
+                </div>
+              )}
+
+              {activeProject.description && (
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Description</div>
+                  <div className="text-sm text-slate-700 leading-relaxed">{activeProject.description}</div>
+                </div>
+              )}
+
+              {activeProject.body && (
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Details</div>
+                  <div
+                    className="text-sm text-slate-700 leading-relaxed prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: activeProject.body }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

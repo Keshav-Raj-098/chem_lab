@@ -68,25 +68,13 @@ export default async function Page() {
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
 
-            <header className="bg-slate-50 border-b border-slate-200/60">
-                <div className="max-w-7xl mx-auto px-6 md:px-10 py-16 md:py-20">
-                    <div className="inline-flex items-center gap-3 mb-4">
-                        <span className="w-7 h-px bg-amber-700" aria-hidden="true" />
-                        <span className="text-[11px] font-semibold tracking-[0.18em] uppercase text-amber-700">
-                            Visuals
-                        </span>
-                    </div>
-                    <h1 className="font-serif text-3xl md:text-5xl text-slate-900 tracking-tight leading-tight">
-                        Gallery
-                    </h1>
-                    <p className="mt-4 max-w-2xl text-slate-500 text-base md:text-lg leading-relaxed">
-                        A visual journey through our research activities, laboratory equipment,
-                        events, and milestones.
-                    </p>
-                </div>
-            </header>
+            <div className="max-w-6xl mx-auto px-4 py-12">
+                <h1 className="text-3xl md:text-4xl font-bold text-center mb-10">
+                    Gallery
+                </h1>
+            </div>
 
-            <main className="max-w-7xl mx-auto px-6 md:px-10 py-16 md:py-20">
+            <main className="max-w-7xl mx-auto px-6 md:px-10 pb-16 md:pb-20">
                 {galleryItems.length === 0 ? (
                     <div className="text-center py-20">
                         <p className="text-slate-400 font-light">No gallery items yet.</p>

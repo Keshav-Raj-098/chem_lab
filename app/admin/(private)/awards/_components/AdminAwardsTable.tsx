@@ -2,8 +2,10 @@
 
 import React, { useState } from "react";
 import { GenericDataTable, Column } from "@/components/admin/GenericDataTable";
-import axios from "@/lib/axiosConfig";
 import { toast } from "sonner";
+import { listAwards } from "../_server/queries";
+import { updateAward, deleteAward } from "../_server/actions";
+import { AwardType } from "@/lib/generated/prisma/enums";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +27,7 @@ import RichTextEditor from "@/components/admin/textEditor";
 interface Award {
   id: string;
   body: string;
-  type: string;
+  type: AwardType;
   updatedAt: string;
 }
 
@@ -41,20 +43,17 @@ export default function AdminAwardsTable({ refreshTrigger, setRefreshTrigger }: 
 
   // Form state for editing
   const [editBody, setEditBody] = useState("");
-  const [editType, setEditType] = useState("GROUP_MEMBER");
+  const [editType, setEditType] = useState<AwardType>(AwardType.GROUP_MEMBER);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchAwards = async (page: number, limit: number, filters?: Record<string, any>) => {
-    let url = `/admin/awards?page=${page}&limit=${limit}`;
-    if (filters?.type) {
-      url += `&type=${filters.type}`;
-    }
-    const response = await axios.get(url);
-    return {
-      data: response.data.awards,
-      meta: response.data.meta,
-    };
+    const result = await listAwards({
+      page,
+      limit,
+      type: (filters?.type as AwardType) ?? null,
+    });
+    return { data: result.data, meta: result.meta };
   };
 
   const handleEdit = (award: Award) => {
@@ -73,10 +72,14 @@ export default function AdminAwardsTable({ refreshTrigger, setRefreshTrigger }: 
     if (!selectedAward) return;
     try {
       setIsUpdating(true);
-      await axios.put(`/admin/awards/${selectedAward.id}`, {
+      const res = await updateAward(selectedAward.id, {
         awardBody: editBody,
         awardType: editType,
       });
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
       toast.success("Award updated successfully");
       setEditDialogOpen(false);
       setRefreshTrigger((prev) => prev + 1);
@@ -92,7 +95,11 @@ export default function AdminAwardsTable({ refreshTrigger, setRefreshTrigger }: 
     if (!selectedAward) return;
     try {
       setIsDeleting(true);
-      await axios.delete(`/admin/awards/${selectedAward.id}`);
+      const res = await deleteAward(selectedAward.id);
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
       toast.success("Award deleted successfully");
       setDeleteDialogOpen(false);
       setRefreshTrigger((prev) => prev + 1);
@@ -170,13 +177,13 @@ export default function AdminAwardsTable({ refreshTrigger, setRefreshTrigger }: 
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="category">Category</Label>
-              <Select value={editType} onValueChange={(val) => setEditType(val as string)}>
+              <Select value={editType} onValueChange={(val) => setEditType(val as AwardType)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="GROUP_LEADER">Group Leader</SelectItem>
-                  <SelectItem value="GROUP_MEMBER">Group Member</SelectItem>
+                  <SelectItem value={AwardType.GROUP_LEADER}>Group Leader</SelectItem>
+                  <SelectItem value={AwardType.GROUP_MEMBER}>Group Member</SelectItem>
                 </SelectContent>
               </Select>
             </div>

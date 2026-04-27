@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { GenericDataTable, Column } from "@/components/admin/GenericDataTable";
-import axios from "@/lib/axiosConfig";
 import { toast } from "sonner";
+import { listProjects } from "../_server/queries";
+import { deleteProject } from "../_server/actions";
 import {
   Dialog,
   DialogContent,
@@ -18,15 +19,15 @@ import { useRouter } from "next/navigation";
 interface Project {
   id: string;
   title: string;
-  description: string;
+  description: string | null;
   status: string;
   type: string;
-  amntFunded: string;
-  duration: string;
-  fundingAgencies: string;
-  investigators: string;
-  contributors: string;
-  completedOn: string;
+  amntFunded: string | null;
+  duration: string | null;
+  fundingAgencies: string | null;
+  investigators: string | null;
+  contributors: string | null;
+  completedOn: string | null;
 }
 
 interface AdminProjectsTableProps {
@@ -42,11 +43,8 @@ export default function AdminProjectsTable({ refreshTrigger, setRefreshTrigger }
   const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchProjects = async (page: number, limit: number) => {
-    const response = await axios.get(`/admin/projects?page=${page}&limit=${limit}`);
-    return {
-      data: response.data.projects,
-      meta: response.data.meta,
-    };
+    const result = await listProjects({ page, limit });
+    return { data: result.data, meta: result.meta };
   };
 
   const handleEdit = (project: Project) => {
@@ -57,7 +55,8 @@ export default function AdminProjectsTable({ refreshTrigger, setRefreshTrigger }
     if (!selectedProject) return;
     try {
       setIsDeleting(true);
-      await axios.delete(`/admin/projects/${selectedProject.id}`);
+      const res = await deleteProject(selectedProject.id);
+      if (!res.ok) { toast.error(res.error); return; }
       toast.success("Project deleted successfully");
       setDeleteDialogOpen(false);
       setRefreshTrigger(p => p + 1);

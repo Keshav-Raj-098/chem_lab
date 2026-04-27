@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import axios from "@/lib/axiosConfig";
 import { toast } from "sonner";
+import { createGroupMember } from "../_server/actions";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -31,12 +31,13 @@ export default function CreateMemberPage() {
         formData.append("profileImgUrl", data.profileImgUrl || "");
       }
 
-      await axios.post("/admin/group", formData);
+      const res = await createGroupMember(formData);
+      if (!res.ok) { toast.error(res.error); return; }
       toast.success("Group member added successfully");
       router.push("/admin/group");
     } catch (error: any) {
       console.error("Error creating group member:", error);
-      toast.error(error.response?.data?.error || "Failed to add group member");
+      toast.error("Failed to add group member");
     } finally {
       setLoading(false);
     }

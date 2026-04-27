@@ -160,20 +160,10 @@ const ResearchPage = () => {
     <div className="min-h-screen bg-white">
       <ResearchAnimations />
 
-      {/* Header */}
-      <div className="pt-28 pb-6">
-        <div className="max-w-6xl mx-auto px-12">
-          <div data-anim="header-left">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-8 h-px bg-teal-600" />
-              <span className="text-xs font-medium tracking-widest uppercase text-teal-600">Research Portfolio</span>
-            </div>
-            <h1 className="text-3xl md:text-4xl font-light tracking-tight text-slate-900">Research Projects</h1>
-            <p className="mt-2 text-sm text-slate-500 font-light max-w-2xl">
-              A comprehensive collection of ongoing and completed research initiatives across catalysis, materials science, and sustainable processes.
-            </p>
-          </div>
-        </div>
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <h1 className="text-3xl md:text-4xl font-bold text-center mb-10">
+          Research Projects
+        </h1>
       </div>
 
       {/* Filter bar */}

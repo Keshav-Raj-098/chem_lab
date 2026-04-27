@@ -1,7 +1,6 @@
 "use client"
 
 import React from 'react'
-import { motion } from 'framer-motion'
 import ResearchAreaCard from "./researchAreaCard"
 import fetchResearchAreas from '@/lib/load_data/load_research_areas';
 
@@ -26,7 +25,7 @@ export default function ResearchAreasPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#080d18]">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0d9488]"></div>
       </div>
     );
@@ -34,7 +33,7 @@ export default function ResearchAreasPage() {
 
   if (!data) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#080d18] text-white">
+      <div className="min-h-screen flex items-center justify-center bg-white text-slate-900">
         <p>Failed to load research areas.</p>
       </div>
     );
@@ -42,16 +41,10 @@ export default function ResearchAreasPage() {
 
   return (
     <div className="research-areas-page-container">
-      <div className="research-areas-header">
-        <motion.h1
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-          className="page-title"
-        >
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <h1 className="text-3xl md:text-4xl font-bold text-center mb-10">
           Research Areas
-        </motion.h1>
-        <div className="title-underline"></div>
+        </h1>
       </div>
 
       <div className="research-areas-list">

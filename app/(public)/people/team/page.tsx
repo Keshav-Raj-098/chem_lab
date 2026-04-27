@@ -170,18 +170,13 @@ const PeoplePage = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="page-header">
-        <div className="page-header-inner">
-          <div className="page-header-eyebrow">Our Community</div>
-          <h1 className="page-header-title">The Research Group</h1>
-          <p className="page-header-subtitle">
-            Faculty, researchers, and students advancing chemical science together — from
-            postdoctoral fellows to undergraduate contributors.
-          </p>
-        </div>
-      </header>
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <h1 className="text-3xl md:text-4xl font-bold text-center mb-10">
+          The Research Group
+        </h1>
+      </div>
 
-      <main className="max-w-7xl mx-auto px-6 md:px-10 py-16 md:py-20 space-y-20 md:space-y-24">
+      <main className="max-w-7xl mx-auto px-6 md:px-10 pb-16 md:pb-20 space-y-20 md:space-y-24">
         {CATEGORY_ORDER.map((category) => {
           const section = sections.get(category);
           if (!section) return null;

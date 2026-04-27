@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import axios from "@/lib/axiosConfig";
 import { toast } from "sonner";
+import { createProject } from "../_server/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,7 +27,15 @@ export default function CreateProjectPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    title: string;
+    description: string;
+    status: "PLANNED" | "ONGOING" | "COMPLETED";
+    type: "FUNDED" | "NON_FUNDED";
+    duration: string;
+    amntFunded: string;
+    completedOn: string;
+  }>({
     title: "",
     description: "",
     status: "PLANNED",
@@ -49,17 +57,18 @@ export default function CreateProjectPage() {
 
     try {
       setLoading(true);
-      await axios.post("/admin/projects", {
+      const res = await createProject({
         ...formData,
         fundingAgencies,
         investigators,
         contributors,
       });
+      if (!res.ok) { toast.error(res.error); return; }
 
       toast.success("Project created successfully");
       router.push("/admin/projects");
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to create project");
+      toast.error("Failed to create project");
     } finally {
       setLoading(false);
     }
@@ -104,7 +113,7 @@ export default function CreateProjectPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="grid gap-2">
               <Label htmlFor="status" className="text-base font-semibold">Status</Label>
-              <Select value={formData.status} onValueChange={val => setFormData({...formData, status: val || "PLANNED"})}>
+              <Select value={formData.status} onValueChange={val => setFormData({...formData, status: (val || "PLANNED") as typeof formData.status})}>
                 <SelectTrigger className="h-11">
                   <SelectValue />
                 </SelectTrigger>
@@ -117,7 +126,7 @@ export default function CreateProjectPage() {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="type" className="text-base font-semibold">Type</Label>
-              <Select value={formData.type} onValueChange={val => setFormData({...formData, type: val || "NON_FUNDED"})}>
+              <Select value={formData.type} onValueChange={val => setFormData({...formData, type: (val || "NON_FUNDED") as typeof formData.type})}>
                 <SelectTrigger className="h-11">
                   <SelectValue />
                 </SelectTrigger>

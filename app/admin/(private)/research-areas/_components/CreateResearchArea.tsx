@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import axios from "@/lib/axiosConfig";
+import { createResearchArea } from "../_server/actions";
 import dynamic from "next/dynamic";
 import { ArrowLeft, Upload, X } from "lucide-react";
 
@@ -62,9 +62,8 @@ export default function CreateResearchArea() {
         formData.append("image", image);
       }
 
-      await axios.post("/admin/research-areas", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await createResearchArea(formData);
+      if (!res.ok) { toast.error(res.error); return; }
 
       toast.success("Research area created successfully");
       router.push("/admin/research-areas");

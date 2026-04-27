@@ -1,6 +1,8 @@
 "use client"
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Image from 'next/image'
+import { Reveal } from '@/components/pub/reveal'
+import type { HomeEquipmentItem } from '@/lib/load_data/load_home'
 
 interface FacilityItem {
   name: string
@@ -10,69 +12,40 @@ interface FacilityItem {
   specs: { key: string; value: string }[]
 }
 
-const facilities: FacilityItem[] = [
-  {
-    name: "XRD (X-Ray Diffractometer)",
-    category: "characterisation",
-    categoryLabel: "CHARACTERISATION",
-    image: "/equipments/a.png",
-    specs: [
-      { key: "Model", value: "Bruker D8 Advance" },
-      { key: "Radiation", value: "Cu K-alpha" },
-      { key: "2-theta Range", value: "5 to 90 deg" },
-      { key: "Step Size", value: "0.02 deg" },
-      { key: "Sample Stage", value: "Rotating" },
-    ],
-  },
-  {
-    name: "FTIR Spectrometer",
-    category: "characterisation",
-    categoryLabel: "CHARACTERISATION",
-    image: "/equipments/a.png",
-    specs: [
-      { key: "Model", value: "Bruker Alpha II" },
-      { key: "Range", value: "400-4000 cm-1" },
-      { key: "Resolution", value: "4 cm-1" },
-      { key: "Mode", value: "ATR" },
-    ],
-  },
-  {
-    name: "Gas Chromatograph",
-    category: "reaction",
-    categoryLabel: "REACTION & SYNTHESIS",
-    image: "/equipments/a.png",
-    specs: [
-      { key: "Model", value: "Agilent 7890B" },
-      { key: "Detector", value: "FID + TCD" },
-      { key: "Columns", value: "Capillary" },
-      { key: "Temp Range", value: "Up to 450 C" },
-    ],
-  },
-  {
-    name: "Tubular Furnace",
-    category: "reaction",
-    categoryLabel: "REACTION & SYNTHESIS",
-    image: "/equipments/a.png",
-    specs: [
-      { key: "Max Temp", value: "1200 C" },
-      { key: "Zones", value: "3-zone" },
-      { key: "Tube Diameter", value: "50 mm" },
-      { key: "Atmosphere", value: "Inert / Reactive" },
-    ],
-  },
-]
+const FALLBACK_IMAGE = '/equipments/a.png'
+
+function toFacility(e: HomeEquipmentItem): FacilityItem {
+  const specs: { key: string; value: string }[] = []
+  if (e.manufacturer) specs.push({ key: 'Manufacturer', value: e.manufacturer })
+  if (e.model) specs.push({ key: 'Model', value: e.model })
+  if (e.serialNumber) specs.push({ key: 'Serial No.', value: e.serialNumber })
+  if (e.installedOn) {
+    const installed = new Date(e.installedOn)
+    specs.push({
+      key: 'Installed',
+      value: installed.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+    })
+  }
+  return {
+    name: e.name,
+    category: e.category.toLowerCase(),
+    categoryLabel: e.category.toUpperCase(),
+    image: FALLBACK_IMAGE,
+    specs,
+  }
+}
 
 const FacilityCard = ({ item }: { item: FacilityItem }) => {
   return (
     <div className="facility-card">
       <div className="facility-card-img">
-        <Image 
-          src={item.image} 
-          alt={item.name} 
-          width={120} 
-          height={100} 
+        <Image
+          src={item.image}
+          alt={item.name}
+          width={120}
+          height={100}
           loading="lazy"
-          style={{ maxHeight: 100, objectFit: 'contain' }} 
+          style={{ maxHeight: 100, objectFit: 'contain' }}
         />
       </div>
       <span className="facility-card-tag">{item.categoryLabel}</span>
@@ -89,38 +62,56 @@ const FacilityCard = ({ item }: { item: FacilityItem }) => {
   )
 }
 
-const ResearchFacilitiesSection = () => {
-  const [activeTab, setActiveTab] = useState("all")
+interface Props {
+  equipments?: HomeEquipmentItem[]
+}
 
-  const filteredFacilities = activeTab === "all"
+const ResearchFacilitiesSection = ({ equipments = [] }: Props) => {
+  const facilities = useMemo(() => equipments.map(toFacility), [equipments])
+
+  const tabs = useMemo(() => {
+    const seen = new Map<string, string>()
+    facilities.forEach((f) => {
+      if (!seen.has(f.category)) seen.set(f.category, f.categoryLabel)
+    })
+    return [{ id: 'all', label: 'All Equipment' }, ...Array.from(seen.entries()).map(([id, label]) => ({ id, label }))]
+  }, [facilities])
+
+  const [activeTab, setActiveTab] = useState('all')
+
+  const filteredFacilities = activeTab === 'all'
     ? facilities
-    : facilities.filter(f => f.category === activeTab)
+    : facilities.filter((f) => f.category === activeTab)
 
-  const tabs = [
-    { id: "all", label: "All Equipment" },
-    { id: "characterisation", label: "Characterisation" },
-    { id: "reaction", label: "Reaction & Synthesis" },
-  ]
+  if (facilities.length === 0) {
+    return (
+      <p style={{ textAlign: 'center', color: 'var(--c-text-muted)', padding: '48px 0' }}>
+        No equipment listed yet.
+      </p>
+    )
+  }
 
   return (
     <div>
-      {/* Filter tabs */}
-      <div className="facilities-tabs">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            className={`facilities-tab ${activeTab === tab.id ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {tabs.length > 2 && (
+        <div className="facilities-tabs">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              className={`facilities-tab ${activeTab === tab.id ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
 
-      {/* Card grid */}
       <div className="facilities-grid">
         {filteredFacilities.map((item, index) => (
-          <FacilityCard key={index} item={item} />
+          <Reveal key={`${activeTab}-${index}`} delay={index * 0.07} y={24}>
+            <FacilityCard item={item} />
+          </Reveal>
         ))}
       </div>
     </div>

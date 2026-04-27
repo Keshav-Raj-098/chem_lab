@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { GenericDataTable, Column } from "@/components/admin/GenericDataTable";
-import axios from "@/lib/axiosConfig";
 import { toast } from "sonner";
+import { listAlumni } from "../_server/queries";
+import { updateAlumni, deleteAlumni } from "../_server/actions";
 import {
   Dialog,
   DialogContent,
@@ -40,11 +41,8 @@ export default function AdminAlumniTable({ refreshTrigger, setRefreshTrigger }: 
   const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchAlumni = async (page: number, limit: number) => {
-    const response = await axios.get(`/admin/alumni?page=${page}&limit=${limit}`);
-    return {
-      data: response.data.alumni,
-      meta: response.data.meta,
-    };
+    const result = await listAlumni({ page, limit });
+    return { data: result.data, meta: result.meta };
   };
 
   const handleEdit = (alumni: AlumniItem) => {
@@ -63,10 +61,11 @@ export default function AdminAlumniTable({ refreshTrigger, setRefreshTrigger }: 
     if (!selectedAlumni) return;
     try {
       setIsUpdating(true);
-      await axios.put(`/admin/alumni/${selectedAlumni.id}`, {
+      const res = await updateAlumni(selectedAlumni.id, {
         name: editName,
         body: editBody,
       });
+      if (!res.ok) { toast.error(res.error); return; }
       toast.success("Alumni updated successfully");
       setEditDialogOpen(false);
       setRefreshTrigger((prev) => prev + 1);
@@ -82,7 +81,8 @@ export default function AdminAlumniTable({ refreshTrigger, setRefreshTrigger }: 
     if (!selectedAlumni) return;
     try {
       setIsDeleting(true);
-      await axios.delete(`/admin/alumni/${selectedAlumni.id}`);
+      const res = await deleteAlumni(selectedAlumni.id);
+      if (!res.ok) { toast.error(res.error); return; }
       toast.success("Alumni deleted successfully");
       setDeleteDialogOpen(false);
       setRefreshTrigger((prev) => prev + 1);

@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import axios from "@/lib/axiosConfig";
+import { getResearchArea } from "../_server/queries";
+import { updateResearchArea } from "../_server/actions";
 import dynamic from "next/dynamic";
 import { ArrowLeft, Upload, X, Loader2 } from "lucide-react";
 
@@ -30,14 +31,18 @@ export default function EditResearchArea() {
   useEffect(() => {
     const fetchArea = async () => {
       try {
-        const response = await axios.get(`/admin/research-areas/${id}`);
-        const area = response.data;
+        const area = await getResearchArea(String(id));
+        if (!area) {
+          toast.error("Research area not found");
+          router.push("/admin/research-areas");
+          return;
+        }
         setName(area.name);
         setBody(area.body);
         if (area.imgUrl) {
           setExistingImgUrl(area.imgUrl);
-          const fullUrl = area.imgUrl.startsWith('http') 
-            ? area.imgUrl 
+          const fullUrl = area.imgUrl.startsWith('http')
+            ? area.imgUrl
             : `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/${area.imgUrl}`;
           setPreview(fullUrl);
         }
@@ -93,9 +98,8 @@ export default function EditResearchArea() {
         formData.append("image", image);
       }
 
-      await axios.put(`/admin/research-areas/${id}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await updateResearchArea(String(id), formData);
+      if (!res.ok) { toast.error(res.error); return; }
 
       toast.success("Research area updated successfully");
       router.push("/admin/research-areas");

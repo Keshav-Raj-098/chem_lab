@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import axios from "@/lib/axiosConfig";
 import { toast } from "sonner";
+import { createPublication } from "../_server/actions";
 import {
   Dialog,
   DialogContent,
@@ -65,11 +65,12 @@ const CreatePublication = ({ onSuccess }: CreatePublicationProps) => {
 
     try {
       setLoading(true);
-      await axios.post("/admin/publication", {
+      const res = await createPublication({
         publicationBody,
         publicationCategory,
-        year: year === "None" ? null : year === "<2000" ? null : parseInt(year),
+        year: year === "None" ? null : year === "<2000" ? 1999 : parseInt(year),
       });
+      if (!res.ok) { ShowToast(res.error, "error"); return; }
 
       ShowToast("Publication added successfully", "success");
       resetForm();
@@ -77,7 +78,7 @@ const CreatePublication = ({ onSuccess }: CreatePublicationProps) => {
       onSuccess();
     } catch (error: any) {
       console.error("Error creating publication:", error);
-      ShowToast(error.response?.data?.error || "Failed to add publication", "error");
+      ShowToast("Failed to add publication", "error");
     } finally {
       setLoading(false);
     }

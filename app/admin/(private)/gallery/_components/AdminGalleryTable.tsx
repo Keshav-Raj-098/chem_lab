@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { GenericDataTable, Column } from "@/components/admin/GenericDataTable";
-import axios from "@/lib/axiosConfig";
 import { toast } from "sonner";
+import { listGallery } from "../_server/queries";
+import { updateGallery, deleteGallery } from "../_server/actions";
 import {
   Dialog,
   DialogContent,
@@ -51,11 +52,8 @@ export default function AdminGalleryTable({ refreshTrigger, setRefreshTrigger }:
   const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchGallery = async (page: number, limit: number) => {
-    const response = await axios.get(`/admin/gallery?page=${page}&limit=${limit}`);
-    return {
-      data: response.data.gallery,
-      meta: response.data.meta,
-    };
+    const result = await listGallery({ page, limit });
+    return { data: result.data, meta: result.meta };
   };
 
   const handleEdit = (item: GalleryItem) => {
@@ -96,13 +94,14 @@ export default function AdminGalleryTable({ refreshTrigger, setRefreshTrigger }:
         data.append("image", editImage);
       }
 
-      await axios.put(`/admin/gallery/${selected.id}`, data);
+      const res = await updateGallery(selected.id, data);
+      if (!res.ok) { toast.error(res.error); return; }
       toast.success("Gallery item updated successfully");
       setEditDialogOpen(false);
       setRefreshTrigger((prev) => prev + 1);
     } catch (error: any) {
       console.error("Update failed:", error);
-      toast.error(error.response?.data?.error || "Failed to update gallery item");
+      toast.error("Failed to update gallery item");
     } finally {
       setIsUpdating(false);
     }
@@ -112,7 +111,8 @@ export default function AdminGalleryTable({ refreshTrigger, setRefreshTrigger }:
     if (!selected) return;
     try {
       setIsDeleting(true);
-      await axios.delete(`/admin/gallery/${selected.id}`);
+      const res = await deleteGallery(selected.id);
+      if (!res.ok) { toast.error(res.error); return; }
       toast.success("Gallery item deleted successfully");
       setDeleteDialogOpen(false);
       setRefreshTrigger((prev) => prev + 1);

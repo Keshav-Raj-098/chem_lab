@@ -17,6 +17,7 @@ import type { IconType } from "react-icons/lib";
 import { useEffect } from "react";
 import Logo from '@/assets/image.png'
 import { useRouter, usePathname } from "next/navigation";
+import { signout } from "@/app/admin/auth/auth";
 import { SidebarTrigger } from "@/components/ui/sidebar"
 type SidebarItem = {
     name: string;
@@ -38,9 +39,8 @@ type SidebarItem = {
 export function AppSidebar({ setPageTitle }: { setPageTitle: (title: string) => void }) {
     const navigate = useRouter();
     const pathname = usePathname();
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        navigate.push("/admin/auth");
+    const handleLogout = async () => {
+        await signout();
     }
 
 

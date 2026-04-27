@@ -1,30 +1,40 @@
-"use server"
-import { TokenPayload } from "@/types/types";
+"use server";
+import { redirect } from "next/navigation";
+import { TokenPayload, LoginSchema } from "@/types/types";
 import { CreateToken } from "@/utils/token.utils";
+import { setAdminCookie, clearAdminCookie } from "@/lib/admin/auth";
 
-type LoginData = {
-    username: string;
-    password: string;
-}
+type LoginInput = {
+  username: string;
+  password: string;
+};
 
-type OutPut = {
-    status : boolean
-    message:string
-    token?:string
-}
+type LoginResult = {
+  status: boolean;
+  message: string;
+};
 
-export async function signin({ username, password }: LoginData): Promise<OutPut> {
-    try {
-        console.log(username,password)
-        if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
-            const token = CreateToken({ username, role: "admin" } as TokenPayload);
-            return {status:true, message: "Login successful", token };
-        }
+export async function signin(input: LoginInput): Promise<LoginResult> {
+  try {
+    const { username, password } = LoginSchema.parse(input);
 
-        return {status:false, message: "Invalid credentials" };
-    } catch (error) {
-        console.error("Login error:", error);
-        return {status:false, message: "Internal Server Error" };
+    if (
+      username !== process.env.ADMIN_USERNAME ||
+      password !== process.env.ADMIN_PASSWORD
+    ) {
+      return { status: false, message: "Invalid credentials" };
     }
 
+    const token = CreateToken({ username, role: "admin" } as TokenPayload);
+    await setAdminCookie(token);
+    return { status: true, message: "Login successful" };
+  } catch (error) {
+    console.error("Login error:", error);
+    return { status: false, message: "Login failed" };
+  }
+}
+
+export async function signout() {
+  await clearAdminCookie();
+  redirect("/admin/auth");
 }

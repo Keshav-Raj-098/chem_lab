@@ -48,7 +48,6 @@ const navbarItems: NavbarItem[] = [
       { name: "Events", link: "/news/events" },
     ]
   },
-  { name: "Outreach", link: "/outreach" },
   { name: "Gallery", link: "/gallery" }
 ]
 

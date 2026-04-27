@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { GenericDataTable, Column } from "@/components/admin/GenericDataTable";
-import axios from "@/lib/axiosConfig";
 import { toast } from "sonner";
+import { listEquipments } from "../_server/queries";
+import { updateEquipment, deleteEquipment } from "../_server/actions";
 import {
   Dialog,
   DialogContent,
@@ -48,11 +49,8 @@ export default function AdminEquipmentTable({ refreshTrigger, setRefreshTrigger 
   const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchEquipments = async (page: number, limit: number) => {
-    const response = await axios.get(`/admin/equipments?page=${page}&limit=${limit}`);
-    return {
-      data: response.data.equipments,
-      meta: response.data.meta,
-    };
+    const result = await listEquipments({ page, limit });
+    return { data: result.data, meta: result.meta };
   };
 
   const handleEdit = (equipment: Equipment) => {
@@ -77,7 +75,8 @@ export default function AdminEquipmentTable({ refreshTrigger, setRefreshTrigger 
     if (!selectedEquipment) return;
     try {
       setIsUpdating(true);
-      await axios.put(`/admin/equipments/${selectedEquipment.id}`, editData);
+      const res = await updateEquipment(selectedEquipment.id, editData);
+      if (!res.ok) { toast.error(res.error); return; }
       toast.success("Equipment updated successfully");
       setEditDialogOpen(false);
       setRefreshTrigger((prev) => prev + 1);
@@ -93,7 +92,8 @@ export default function AdminEquipmentTable({ refreshTrigger, setRefreshTrigger 
     if (!selectedEquipment) return;
     try {
       setIsDeleting(true);
-      await axios.delete(`/admin/equipments/${selectedEquipment.id}`);
+      const res = await deleteEquipment(selectedEquipment.id);
+      if (!res.ok) { toast.error(res.error); return; }
       toast.success("Equipment deleted successfully");
       setDeleteDialogOpen(false);
       setRefreshTrigger((prev) => prev + 1);
